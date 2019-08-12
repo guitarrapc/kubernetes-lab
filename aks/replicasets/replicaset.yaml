@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: photoview-rs
+
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: photoview
+
+  template:
+    metadata:
+      labels:
+        app: photoview
+        env: prod
+        
+    spec:
+      containers:
+      - image: sampleguitarrapcacr.azurecr.io/photo-view:v1.0
+        name: photoview-container
+        ports:
+          - containerPort: 80
+

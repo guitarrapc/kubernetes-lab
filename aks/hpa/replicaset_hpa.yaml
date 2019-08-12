@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: busy-replicaset
+
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: busy 
+      
+  template:
+    metadata:
+      labels:
+        app: busy
+    spec:
+      containers:
+      - image: busybox 
+        name: hpa-container
+        command: ["dd", "if=/dev/zero", "of=/dev/null"]
+        resources:
+          requests:
+            cpu: 100m
+          limits:
+            cpu: 100m

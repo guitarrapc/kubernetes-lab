@@ -1,0 +1,25 @@
+# Basic info
+apiVersion: apps/v1 #v1alpha1 / v1beta1
+kind: ReplicaSet
+metadata:
+  name: nginx
+
+# Deploy Spec
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: webfront
+  
+  # Pod template
+  template:
+    metadata:
+      labels:
+        app: webfront
+        env: dev
+    spec:
+      containers:
+      - image: nginx
+        name: webfront-container
+        ports:
+        - containerPort: 80

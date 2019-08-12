@@ -1,0 +1,15 @@
+# Basic info
+apiVersion: v1
+kind: Pod
+metadata:
+  name: photoview-pod
+  labels:
+    app: photo-view
+    env: stage
+
+spec:
+  containers:
+  - image: sampleguitarrapcacr.azurecr.io/photo-view:v2.0
+    name: photoview-container
+    ports:
+    - containerPort: 80

@@ -1,0 +1,25 @@
+# Basic info
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: photoview-deployment
+
+# Deploy Spec
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: photo-view
+  
+  # Pod template
+  template:
+    metadata:
+      labels:
+        app: photo-view
+        env: stage
+    spec:
+      containers:
+      - image: sampleguitarrapcacr.azurecr.io/photo-view:v1.0
+        name: photoview-container
+        ports:
+        - containerPort: 80

@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: nginx-replicaset
+
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: photo-view
+
+  template:
+    metadata:
+      labels:
+        app: photo-view
+
+    spec:
+      containers:
+      - image: nginx
+        name: photoview-container
+        ports:
+          - containerPort: 80
+
