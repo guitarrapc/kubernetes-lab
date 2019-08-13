@@ -1,10 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: rollout-deployment
+  name: rolling-deployment
 
 spec:
   replicas: 10
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 30%
+      maxUnavailable: 10%
+
   selector:
     matchLabels:
       app: photo-view
@@ -18,20 +25,4 @@ spec:
       - image: sampleguitarrapcacr.azurecr.io/photo-view:v1.0
         name: photoview-container
         ports:
-          - containerPort: 80
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: rollout
-
-spec:
-  type: LoadBalancer
-  ports:
-    - port: 80
-      targetPort: 80
-      protocol: TCP
-  
-  selector:
-    app: photo-view
+        - containerPort: 80

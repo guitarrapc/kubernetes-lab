@@ -38,3 +38,15 @@ kubectl describe deploy rollout-deployment
 # rollback to v1.0
 kubectl apply -f deployments/rollout-deployment.yaml
 kubectl describe deploy rollout-deployment
+
+# change pod from 3 -> 10
+kubectl apply -f deployments/rollout-deployment.yaml
+kubectl get pod
+kubectl describe deploy rollout-deployment
+kubectl rollout history deploy rollout-deployment
+kubectl rollout history deploy rollout-deployment --revision 3
+
+kubectl delete -f deployments/rollout-deployment.yaml
+
+# maxUnavailable: (default = 25%)
+# maxSurge: (default = 25%)

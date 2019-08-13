@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: configmap-deployment
+
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: config-view
+
+  template:
+    metadata:
+      labels:
+        app: config-view
+    spec:
+      containers:
+      - image: sampleguitarrapcacr.azurecr.io/photo-view:v3.0
+        name: photoview-container
+        imagePullPolicy: Always
+
+        ports:
+        - containerPort: 80
+
+        env:
+        - name: PROJECT_ID
+          valueFrom:
+            configMapKeyRef:
+              name: project-config
+              key: project.id
+
+        volumeMounts:
+          - name: config-volume
+            mountPath: /etc/config
+
+      volumes:
+        - name: config-volume
+          configMap:
+            name: app-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webserver
+
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+  
+  selector:
+    app: config-view
