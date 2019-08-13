@@ -1,0 +1,3 @@
+[submodule "aks/oss"]
+	path = aks/oss
+	url = https://github.com/ToruMakabe/Understanding-K8s
