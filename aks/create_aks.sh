@@ -13,8 +13,10 @@ az group create --resource-group $ACR_RES_GROUP --location $LOCATION
 az acr create --resource-group $ACR_RES_GROUP --name $ACR_NAME --sku Standard --location $LOCATION
 
 # image on oss folder.
+cd ./oss/chap02
 az acr build --registry $ACR_NAME --image photo-view:v1.0 v1.0/
 az acr build --registry $ACR_NAME --image photo-view:v2.0 v2.0/
+cd ../../
 
 az acr repository show-tags -n $ACR_NAME --repository photo-view
 
@@ -52,7 +54,10 @@ az aks create \
 # k8s credential
 az aks get-credentials --admin --resource-group $AKS_RES_GROUP --name $AKS_CLUSTER_NAME
 # Merged "AKSCluster-admin" as current context in ~/.kube/config
+# macos
 grep client-certificate-data ~/.kube/config | awk '{print $2}' | base64 -D | openssl x509 -text | grep Subject
+# ubuntu
+grep client-certificate-data ~/.kube/config | awk '{print $2}' | base64 -d | openssl x509 -text | grep Subject
 kubectl get clusterrolebindings
 kubectl get clusterrolebindings cluster-admin -o yaml
 kubectl get clusterole cluster-admin -o yaml
@@ -67,12 +72,22 @@ kubectl get node
 kubectl get node -o=wide
 kubectl describe node aks-nodepool1-35672737-0
 
-# enable auro completion
+# enable auto completion
 source <(kubectl completion bash)
 echo "source <(kubectl completion bash)" >> ~/.bashrc
+alias k=kubectl
+complete -F __start_kubectl k
 
+# show config
+kubectl config view
 
 # clean up
 az group delete -name $ACR_RES_GROUP
 az group delete -name $AKS_RES_GROUP
 az ad sp delete -id=$(az ad sp show --id http://$SP_NAME --query appId --output tsv)
+
+# switch context
+kubectl config get-contexts
+kubectl config current-context
+kubectl config use-context docker-desktop
+kubectl config use-context AKSCluster-admin

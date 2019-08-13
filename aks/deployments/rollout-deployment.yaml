@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rollout-deployment
+
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: photo-view
+
+  template:
+    metadata:
+      labels:
+        app: photo-view
+    spec:
+      containers:
+      - image: sampleguitarrapcacr.azurecr.io/photo-view:v1.0
+        name: photoview-container
+        ports:
+          - containerPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rollout
+
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+  
+  selector:
+    app: photo-view
