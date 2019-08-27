@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: green-deployment
+
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: photo-view
+
+  template:
+    metadata:
+      labels:
+        app: photo-view
+        ver: v2.0
+    spec:
+      containers:
+      - image: sampleguitarrapcacr.azurecr.io/photo-view:v2.0
+        name: photoview-container 
+        ports:
+        - containerPort: 80 

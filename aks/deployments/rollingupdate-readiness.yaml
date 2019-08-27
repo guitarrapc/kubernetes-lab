@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rolling-deployment
+
+spec:
+  replicas: 10
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 30%
+      maxUnavailable: 10%
+
+  selector:
+    matchLabels:
+      app: photo-view
+
+  template:
+    metadata:
+      labels:
+        app: photo-view
+    spec:
+      containers:
+      - image: k8s.gcr.io/liveness
+        args:
+          - /server
+        name: photoview-container
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+            httpHeaders:
+            - name: X-Custom-Header
+              value: Awesome
+          initialDelaySeconds: 3
+          periodSeconds: 3
+    
