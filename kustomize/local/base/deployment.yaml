@@ -1,0 +1,22 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: aspnetapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aspnetapp
+  template:
+    metadata:
+      labels:
+        app: aspnetapp
+    spec:
+      containers:
+      - name: aspnetapp
+        image: aspnetapp:latest
+        imagePullPolicy: Never # use local image
+        ports:
+        - containerPort: 80
+          
+
