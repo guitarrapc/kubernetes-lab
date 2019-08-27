@@ -1,0 +1,8 @@
+namespace: nginx-dev
+bases:
+- ../../base
+patches:
+- deployment.yaml
+- configmap.yaml
+resources:
+- namespace.yaml
