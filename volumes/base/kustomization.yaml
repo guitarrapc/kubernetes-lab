@@ -1,0 +1,5 @@
+namespace: mysql-local
+resources:
+  - deployment.yaml
+  - namespace.yaml
+  - pv.yaml
