@@ -2,9 +2,10 @@
 
 use sample grpc image on repo [guitarrapc/grpc-lab](https://github.com/guitarrapc/gRPC-lab/tree/master/healthcheck)
 
-> [guitarrapc/grpc-example-server-csharp](https://cloud.docker.com/u/guitarrapc/repository/docker/guitarrapc/grpc-example-server-csharp)
->
-> [guitarrapc/grpc-example-client-csharp](https://cloud.docker.com/u/guitarrapc/repository/docker/guitarrapc/grpc-example-client-csharp)
+Images are available at Docker Hub.
+
+> [guitarrapc/grpc-example-server-csharp](https://hub.docker.com/r/guitarrapc/grpc-example-server-csharp)
+> [guitarrapc/grpc-example-client-csharp](https://hub.docker.com/r/guitarrapc/grpc-example-client-csharp)
 
 ## Run
 
