@@ -1,0 +1,8 @@
+namespace: grpc-lab-nlb
+resources:
+- greet-deployment.yaml
+- greet-service.yaml
+- envoy-configmap.yaml
+- envoy-deployment.yaml
+- envoy-service.yaml
+- namespace.yaml

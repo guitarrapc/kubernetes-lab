@@ -1,0 +1,3 @@
+resources:
+- greet-deployment.yaml
+- greet-service.yaml
