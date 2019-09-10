@@ -31,6 +31,13 @@ kubectl get deploy -n grpc-lab-nlb
 kubectl kustomize externalnlb-envoy/base | kubectl delete -f -
 ```
 
+> development
+
+```
+kubectl kustomize externalnlb-envoy/development | kubectl apply -f -
+kubectl kustomize externalnlb-envoy/development | kubectl delete -f -
+```
+
 ## REF
 
 > [Amazon EKSでgRPCサーバを運用する \- 一休\.com Developers Blog](https://user-first.ikyu.co.jp/entry/2019/08/27/093858)

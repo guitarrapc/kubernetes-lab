@@ -1,0 +1,5 @@
+namespace: grpc-lab-nlb
+bases:
+- ../base
+patches:
+- envoy-service.yaml
