@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: greet-grpc
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: greet-grpc
+  template:
+    metadata:
+      labels:
+        app: greet-grpc
+    spec:
+      containers:
+      - name: greet-grpc
+        image: guitarrapc/grpc-example-server-csharp:v0.0.1
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 50051
+        readinessProbe:
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:50051","-service=Check"]
+          initialDelaySeconds: 1
+        livenessProbe:
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:50051","-service=Check"]
+          initialDelaySeconds: 5

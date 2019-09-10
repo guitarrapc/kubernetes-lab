@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: envoy
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: envoy
+  template:
+    metadata:
+      labels:
+        app: envoy
+    spec:
+      containers:
+      - name: envoy
+        image: envoyproxy/envoy-alpine:v1.9.1
+        ports:
+        - name: http
+          containerPort: 50051
+        volumeMounts:
+        - name: config
+          mountPath: /etc/envoy
+        readinessProbe:
+          httpGet:
+            scheme: HTTP
+            path: /healthz
+            httpHeaders:
+            - name: x-envoy-livenessprobe
+              value: healthz
+            port: 50051
+          initialDelaySeconds: 3
+        livenessProbe:
+          httpGet:
+            scheme: HTTP
+            path: /healthz
+            httpHeaders:
+            - name: x-envoy-livenessprobe
+              value: healthz
+            port: 50051
+          initialDelaySeconds: 10
+      volumes:
+      - name: config
+        configMap:
+          name: envoy-conf
