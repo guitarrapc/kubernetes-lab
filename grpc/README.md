@@ -42,3 +42,5 @@ kubectl kustomize externalnlb-envoy/base | kubectl delete -f -
 > [grpc\-ecosystem/grpc\-health\-probe: A command\-line tool to perform health\-checks for gRPC applications in Kubernetes etc\.](https://github.com/grpc-ecosystem/grpc-health-probe/)
 >
 > [Health checking gRPC servers on Kubernetes \- Kubernetes](https://kubernetes.io/blog/2018/10/01/health-checking-grpc-servers-on-kubernetes/)
+>
+> EnvoyをServerに常時置いた別の形式: [EnvoyでgRPCをロードバランスする \- PartyIX](https://h3poteto.hatenablog.com/entry/2019/02/18/130500)
