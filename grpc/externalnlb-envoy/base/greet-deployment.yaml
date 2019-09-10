@@ -7,10 +7,6 @@ spec:
   selector:
     matchLabels:
       app: greet-grpc
-  strategy:
-    rollingUpdate:
-      maxSurge: 2
-      maxUnavailable: 1
   template:
     metadata:
       labels:
@@ -18,7 +14,7 @@ spec:
     spec:
       containers:
       - name: greet-grpc
-        image: guitarrapc/grpc-example-server-csharp:v0.0.1
+        image: guitarrapc/grpc-example-server-csharp:v0.0.2
         imagePullPolicy: Always
         ports:
         - containerPort: 50051
