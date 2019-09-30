@@ -526,15 +526,6 @@ clone repo.
 
 open `agones/examples/simple-udp/main.go`
 
-
-change line 107. (exit handling)
-
-```golang
-- respond(conn, sender, "ACK: "+txt+"\n")
-+ respond(conn, sender, "ACK: Echo says "+txt+"\n")
-+ respond(conn, sender, "Exit detected, quitting."+\n")
-```
-
 change line 107. (exit handling)
 
 ```golang
@@ -549,9 +540,86 @@ change line 159. (message handling)
 + respond(conn, sender, "ACK: Echo says "+txt+"\n")
 ```
 
-build golang udp-server.
+> see simple-udp folder in this repo.
+
+(if local build is needed) build golang udp-server.
 
 ```
 go get agones.dev/agones/pkg/sdk
+# linux/macOS
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o bin/server -a -v main.go
+# windows
+set GOOS=linux
+set GOARCH=amd64
+set CGO_ENABLED=0
+go build -o bin/server -a -v main.go
+```
+
+docker build and push to dockerhub.
+
+```
+docker build -t agones-udp-server:modified -f examples/simple-udp/Dockerfile .
+docker tag agones-udp-server:modified guitarrapc/agones-udp-server:modified
+docker push guitarrapc/agones-udp-server:modified
+```
+
+(if using gameserver)
+
+download gameserver.yaml and modify to use own image.
+
+```
+curl -LO https://raw.githubusercontent.com/googleforgames/agones/release-1.0.0/examples/simple-udp/gameserver.yaml
+vim gameserver.yaml
+```
+
+```
+  template:
+    spec:
+      containers:
+      - name: simple-udp
+        image: guitarrapc/agones-udp-server:modified
+```
+
+deploy gameserver.yaml
+
+```
+kubectl delete -f https://raw.githubusercontent.com/googleforgames/agones/release-1.0.0/examples/simple-udp/gameserver.yaml
+kubectl create -f gameserver.yaml
+```
+
+
+(if using fleet autoscaler)
+
+download fleet.yaml and modify to use own image.
+
+```
+curl -LO https://raw.githubusercontent.com/googleforgames/agones/release-1.0.0/examples/simple-udp/fleet.yaml
+vim fleet.yaml
+```
+
+apply and check ready is back to desired count.
+
+```
+kubectl apply -f fleet.yaml
+kubectl get fleet -w
+```
+
+scale to 0 and 2
+
+```
+kubectl scale --replicas=0 fleet/simple-udp
+kubectl scale --replicas=2 fleet/simple-udp
+```
+
+connect and confirm change deployed.
+
+```
+$ kubectl get gs
+$ nc -u 13.231.213.229 7054
+hoge
+ACK: Echo says hoge
+moge
+ACK: Echo says moge
+EXIT
+ACK: Echo says EXITExit detected
 ```
