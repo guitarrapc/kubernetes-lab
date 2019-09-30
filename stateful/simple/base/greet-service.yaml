@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: stateful-grpc-svc
+spec:
+  selector:
+    app: stateful-greet-grpc
+  ports:
+  - name: greet
+    protocol: TCP
+    port: 50051
+    

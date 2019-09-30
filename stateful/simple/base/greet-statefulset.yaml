@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: stateful-greet-grpc
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: stateful-greet-grpc
+  serviceName: stateful-grpc-svc
+  template:
+    metadata:
+      labels:
+        app: stateful-greet-grpc
+    spec:
+      containers:
+      - name: stateful-greet-grpc
+        image: guitarrapc/grpc-example-server-csharp:v0.0.3
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 50051
+        readinessProbe:
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:50051","-service=Check"]
+          initialDelaySeconds: 1
+        livenessProbe:
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:50051","-service=Check"]
+          initialDelaySeconds: 5
+        volumeMounts:
+        - name: data
+          mountPath: /data
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 64Mi

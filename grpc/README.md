@@ -19,9 +19,9 @@ kubectl get deploy
 kubectl kustomize simple/base | kubectl delete -f -
 ```
 
-k8s. envoy deployment. (namespace: `grpc-lab-nlb`)
+k8s. better grpc loadbalancing handle with envoy deployment. (namespace: `grpc-lab-nlb`)
 
-> better grpc loadbalancing handle.
+> local
 
 ```
 kubectl kustomize externalnlb-envoy/base | kubectl apply -f -
@@ -31,10 +31,13 @@ kubectl get deploy -n grpc-lab-nlb
 kubectl kustomize externalnlb-envoy/base | kubectl delete -f -
 ```
 
-> development
+> development (aws nlb)
 
 ```
 kubectl kustomize externalnlb-envoy/development | kubectl apply -f -
+kubectl get svc -n grpc-lab-nlb
+kubectl get pod -n grpc-lab-nlb
+kubectl get deploy -n grpc-lab-nlb
 kubectl kustomize externalnlb-envoy/development | kubectl delete -f -
 ```
 
