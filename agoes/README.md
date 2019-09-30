@@ -48,7 +48,7 @@ REF: https://agones.dev/site/docs/getting-started/create-gameserver/
 > GameServer Specification: https://agones.dev/site/docs/reference/gameserver/
 
 ```
-kubectl apply -f https://gist.githubusercontent.com/guitarrapc/23aa2c53ad586a45cf9d266ad1e1d497/raw/58c83e9778796561c6f74e71297eebbdffde067e/agones-deploy.yaml
+kubectl create -f https://raw.githubusercontent.com/googleforgames/agones/release-1.0.0/examples/simple-udp/gameserver.yaml
 kubectl get gameservers
 kubectl get pod
 ```
@@ -198,4 +198,360 @@ $ kubectl scale fleet simple-udp --replicas=0
 
 NAME         SCHEDULING   DESIRED   CURRENT   ALLOCATED   READY   AGE
 simple-udp   Packed       0         0         0           0       1h
+```
+
+## Fleet Autoslaer
+
+> REF: https://agones.dev/site/docs/getting-started/create-fleetautoscaler/
+
+let(s auto scale fleet every time without running kubectl everytime.
+
+install autoscaler.
+
+```
+kubectl apply -f https://raw.githubusercontent.com/googleforgames/agones/release-1.0.0/examples/simple-udp/fleetautoscaler.yaml
+```
+
+see autoscaler status.
+
+```
+$ kubectl describe fleetautoscaler simple-udp-autoscaler
+
+Name:         simple-udp-autoscaler
+Namespace:    default
+Labels:       <none>
+Annotations:  kubectl.kubernetes.io/last-applied-configuration:
+                {"apiVersion":"autoscaling.agones.dev/v1","kind":"FleetAutoscaler","metadata":{"annotations":{},"name":"simple-udp-autoscaler","namespace"...
+API Version:  autoscaling.agones.dev/v1
+Kind:         FleetAutoscaler
+Metadata:
+  Creation Timestamp:  2019-09-30T05:37:48Z
+  Generation:          1
+  Resource Version:    16456
+  Self Link:           /apis/autoscaling.agones.dev/v1/namespaces/default/fleetautoscalers/simple-udp-autoscaler
+  UID:                 700bc096-e344-11e9-9700-06cdb1357bd8
+Spec:
+  Fleet Name:  simple-udp
+  Policy:
+    Buffer:
+      Buffer Size:   2
+      Max Replicas:  10
+      Min Replicas:  0
+    Type:            Buffer
+Status:
+  Able To Scale:     true
+  Current Replicas:  2
+  Desired Replicas:  2
+  Last Scale Time:   2019-09-30T05:37:48Z
+  Scaling Limited:   false
+Events:
+  Type    Reason            Age   From                        Message
+  ----    ------            ----  ----                        -------
+  Normal  AutoScalingFleet  33s   fleetautoscaler-controller  Scaling fleet simple-udp from 0 to 2
+```
+
+`Status.Last Scale Time` will indicate you last scale time, nil for never.
+Expected convergenece is in seconds.
+
+allocate gameserver from fleet.
+
+```
+kubectl create -f https://raw.githubusercontent.com/googleforgames/agones/release-1.0.0/examples/simple-udp/gameserverallocation.yaml -o yaml
+
+rallocation.yaml -o yaml
+apiVersion: allocation.agones.dev/v1
+kind: GameServerAllocation
+metadata:
+  creationTimestamp: "2019-09-30T05:44:56Z"
+  name: simple-udp-fxcwh-xmv2k
+  namespace: default
+spec:
+  metadata: {}
+  multiClusterSetting:
+    policySelector: {}
+  required:
+    matchLabels:
+      agones.dev/fleet: simple-udp
+  scheduling: Packed
+status:
+  address: 13.231.213.229
+  gameServerName: simple-udp-fxcwh-xmv2k
+  nodeName: ip-192-168-58-250.ap-northeast-1.compute.internal
+  ports:
+  - name: default
+    port: 7494
+  state: Allocated
+```
+
+list gameservers.
+
+```
+$ kubectl get gs
+
+NAME                     STATE       ADDRESS          PORT   NODE                                                AGE
+simple-udp-fxcwh-n4dwb   Ready       13.231.213.229   7051   ip-192-168-58-250.ap-northeast-1.compute.internal   7m
+simple-udp-fxcwh-xmv2k   Allocated   13.231.213.229   7494   ip-192-168-58-250.ap-northeast-1.compute.internal   7m
+```
+
+now fleet scaled out to 3, this is controlled with `bufferSize`.
+
+```
+$ kubectl describe fleetautoscaler simple-udp-autoscaler
+
+Name:         simple-udp-autoscaler
+Namespace:    default
+Labels:       <none>
+Annotations:  kubectl.kubernetes.io/last-applied-configuration:
+                {"apiVersion":"autoscaling.agones.dev/v1","kind":"FleetAutoscaler","metadata":{"annotations":{},"name":"simple-udp-autoscaler","namespace"...
+API Version:  autoscaling.agones.dev/v1
+Kind:         FleetAutoscaler
+Metadata:
+  Creation Timestamp:  2019-09-30T05:37:48Z
+  Generation:          1
+  Resource Version:    17078
+  Self Link:           /apis/autoscaling.agones.dev/v1/namespaces/default/fleetautoscalers/simple-udp-autoscaler
+  UID:                 700bc096-e344-11e9-9700-06cdb1357bd8
+Spec:
+  Fleet Name:  simple-udp
+  Policy:
+    Buffer:
+      Buffer Size:   2
+      Max Replicas:  10
+      Min Replicas:  0
+    Type:            Buffer
+Status:
+  Able To Scale:     true
+  Current Replicas:  3
+  Desired Replicas:  3
+  Last Scale Time:   2019-09-30T05:45:11Z
+  Scaling Limited:   false
+Events:
+  Type    Reason            Age    From                        Message
+  ----    ------            ----   ----                        -------
+  Normal  AutoScalingFleet  8m12s  fleetautoscaler-controller  Scaling fleet simple-udp from 0 to 2
+  Normal  AutoScalingFleet  49s    fleetautoscaler-controller  Scaling fleet simple-udp from 2 to 
+```
+
+```
+$ kubectl get gs
+
+NAME                     STATE       ADDRESS          PORT   NODE                                                AGE
+simple-udp-fxcwh-j49nv   Ready       13.231.213.229   7059   ip-192-168-58-250.ap-northeast-1.compute.internal   56s
+simple-udp-fxcwh-n4dwb   Ready       13.231.213.229   7051   ip-192-168-58-250.ap-northeast-1.compute.internal   8m
+simple-udp-fxcwh-xmv2k   Allocated   13.231.213.229   7494   ip-192-168-58-250.ap-northeast-1.compute.internal   8m
+```
+
+stop allocated server
+
+```
+$ kubectl get gameservers | grep Allocated | awk '{print $3":"$4 }'
+13.231.213.229:7494
+$ nc -u 13.231.213.229 7494
+hoge
+ACK: hoge
+EXIT
+ACK: EXIT
+```
+
+now fleet scale in from 3 -> 2.
+
+```
+$ kubectl describe fleetautoscaler simple-udp-autoscaler
+
+Name:         simple-udp-autoscaler
+Namespace:    default
+Labels:       <none>
+Annotations:  kubectl.kubernetes.io/last-applied-configuration:
+                {"apiVersion":"autoscaling.agones.dev/v1","kind":"FleetAutoscaler","metadata":{"annotations":{},"name":"simple-udp-autoscaler","namespace"...
+API Version:  autoscaling.agones.dev/v1
+Kind:         FleetAutoscaler
+Metadata:
+  Creation Timestamp:  2019-09-30T05:37:48Z
+  Generation:          1
+  Resource Version:    17352
+  Self Link:           /apis/autoscaling.agones.dev/v1/namespaces/default/fleetautoscalers/simple-udp-autoscaler
+  UID:                 700bc096-e344-11e9-9700-06cdb1357bd8
+Spec:
+  Fleet Name:  simple-udp
+  Policy:
+    Buffer:
+      Buffer Size:   2
+      Max Replicas:  10
+      Min Replicas:  0
+    Type:            Buffer
+Status:
+  Able To Scale:     true
+  Current Replicas:  3
+  Desired Replicas:  2
+  Last Scale Time:   2019-09-30T05:48:41Z
+  Scaling Limited:   false
+Events:
+  Type    Reason            Age    From                        Message
+  ----    ------            ----   ----                        -------
+  Normal  AutoScalingFleet  11m    fleetautoscaler-controller  Scaling fleet simple-udp from 0 to 2
+  Normal  AutoScalingFleet  3m44s  fleetautoscaler-controller  Scaling fleet simple-udp from 2 to 3
+  Normal  AutoScalingFleet  14s    fleetautoscaler-controller  Scaling fleet simple-udp from 3 to 2
+```
+
+fleet status.
+
+```
+$ kubectl get gs
+
+NAME                     STATE   ADDRESS          PORT   NODE                                                AGE
+simple-udp-fxcwh-j49nv   Ready   13.231.213.229   7059   ip-192-168-58-250.ap-northeast-1.compute.internal   4m
+simple-udp-fxcwh-n4dwb   Ready   13.231.213.229   7051   ip-192-168-58-250.ap-northeast-1.compute.internal   11m
+```
+
+let's change buffer size to 3. change `bufferSize` to 3.
+
+```
+kubectl edit fleetautoscaler simple-udp-autoscaler
+```
+
+see status.
+
+```
+$ kubectl get gs
+
+NAME                     STATE       ADDRESS          PORT   NODE                                                AGE
+simple-udp-fxcwh-64z8z   Scheduled   13.231.213.229   7173   ip-192-168-58-250.ap-northeast-1.compute.internal   6s
+simple-udp-fxcwh-j49nv   Ready       13.231.213.229   7059   ip-192-168-58-250.ap-northeast-1.compute.internal   5m
+simple-udp-fxcwh-n4dwb   Ready       13.231.213.229   7051   ip-192-168-58-250.ap-northeast-1.compute.internal   13m
+```
+
+## Fleet Autoscaler with Webhook
+
+> REF: https://agones.dev/site/docs/getting-started/create-webhook-fleetautoscaler/
+
+If you autoscale can't be handle with simple buffer, you can impletement login and set as API servicea.
+
+Deploy webhook service for autoscaling.
+
+```
+kubectl apply -f https://raw.githubusercontent.com/googleforgames/agones/release-1.0.0/examples/autoscaler-webhook/autoscaler-service.yaml
+```
+
+confirm liveness probe is fine.
+
+```
+kubectl describe pod autoscaler-webhook
+```
+
+remove fleet autoscaler if you deployed.
+
+```
+kubectl delete -f https://raw.githubusercontent.com/googleforgames/agones/release-1.0.0/examples/simple-udp/fleetautoscaler.yaml
+```
+
+deploy webhook fleet autoscaler.
+
+> you can check the logic. https://github.com/googleforgames/agones/tree/release-1.0.0/examples/autoscaler-webhook
+
+/healthと /scale を実装して、response を返すだけでいいのでロジックは言語問わず問題ない。
+
+```
+kubectl apply -f https://raw.githubusercontent.com/googleforgames/agones/release-1.0.0/examples/webhookfleetautoscaler.yaml
+```
+
+check webhook fleet autoscaler.
+
+```
+kubectl describe fleetautoscaler.autoscaling.agones.dev/webhook-fleet-autoscaler
+kubectl get gs
+```
+
+allocate gameserver 2times.
+
+```
+kubectl create -f https://raw.githubusercontent.com/googleforgames/agones/release-1.0.0/examples/simple-udp/gameserverallocation.yaml -o yaml
+kubectl create -f https://raw.githubusercontent.com/googleforgames/agones/release-1.0.0/examples/simple-udp/gameserverallocation.yaml -o yaml
+```
+
+check fleet status, 2 instance are added as allocated + buffer.
+
+```
+$ kubectl describe fleetautoscaler webhook-fleet-autoscaler
+
+Events:
+  Type    Reason            Age    From                        Message
+  ----    ------            ----   ----                        -------
+  Normal  AutoScalingFleet  2m16s  fleetautoscaler-controller  Scaling fleet simple-udp from 3 to 2
+  Normal  AutoScalingFleet  36s    fleetautoscaler-controller  Scaling fleet simple-udp from 2 to 4
+
+$ kubectl get gs
+
+NAME                     STATE       ADDRESS          PORT   NODE                                                AGE
+simple-udp-fxcwh-64z8z   Allocated   13.231.213.229   7173   ip-192-168-58-250.ap-northeast-1.compute.internal   21m
+simple-udp-fxcwh-7567x   Ready       13.231.213.229   7245   ip-192-168-58-250.ap-northeast-1.compute.internal   40s
+simple-udp-fxcwh-fsph8   Ready       13.231.213.229   7325   ip-192-168-58-250.ap-northeast-1.compute.internal   40s
+simple-udp-fxcwh-j49nv   Allocated   13.231.213.229   7059   ip-192-168-58-250.ap-northeast-1.compute.internal   27m
+```
+
+let's scale-in, connect and shutdown gameserver.
+
+```
+$ nc -u 13.231.213.229 7173
+EXIT
+
+$ nc -u 13.231.213.229 7059
+EXIT 
+```
+
+you may find scaled down event on fleet.
+
+```
+$ kubectl describe fleetautoscaler webhook-fleet-autoscaler
+
+Events:
+  Type    Reason            Age    From                        Message
+  ----    ------            ----   ----                        -------
+  Normal  AutoScalingFleet  3m55s  fleetautoscaler-controller  Scaling fleet simple-udp from 3 to 2
+  Normal  AutoScalingFleet  2m15s  fleetautoscaler-controller  Scaling fleet simple-udp from 2 to 4
+  Normal  AutoScalingFleet  15s    fleetautoscaler-controller  Scaling fleet simple-udp from 4 to 2
+```
+
+In case you want setup CA bundle, check it out.
+
+> https://agones.dev/site/docs/getting-started/create-webhook-fleetautoscaler/
+
+
+## Edit game server (Golang)
+
+> REF: https://agones.dev/site/docs/getting-started/edit-first-gameserver-go/
+
+clone repo.
+
+> git clone https://github.com/googleforgames/agones.git
+
+open `agones/examples/simple-udp/main.go`
+
+
+change line 107. (exit handling)
+
+```golang
+- respond(conn, sender, "ACK: "+txt+"\n")
++ respond(conn, sender, "ACK: Echo says "+txt+"\n")
++ respond(conn, sender, "Exit detected, quitting."+\n")
+```
+
+change line 107. (exit handling)
+
+```golang
+- respond(conn, sender, "ACK: "+txt+"\n")
++ respond(conn, sender, "ACK: Echo says "+txt+"Exit detected"+"\n")
+```
+
+change line 159. (message handling)
+
+```golang
+- respond(conn, sender, "ACK: "+txt+"\n")
++ respond(conn, sender, "ACK: Echo says "+txt+"\n")
+```
+
+build golang udp-server.
+
+```
+go get agones.dev/agones/pkg/sdk
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o bin/server -a -v main.go
 ```
