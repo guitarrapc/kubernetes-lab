@@ -623,3 +623,79 @@ ACK: Echo says moge
 EXIT
 ACK: Echo says EXITExit detected
 ```
+
+
+## Edit game server (CSharp)
+
+> REF: https://agones.dev/site/docs/getting-started/edit-first-gameserver-go/
+
+docker build and push to dockerhub.
+
+```
+pushd simple-udp-csharp
+docker build -t agones-udp-server-csharp:0.1 -f Agones/Dockerfile .
+docker tag agones-udp-server-csharp:0.1 guitarrapc/agones-udp-server-csharp:0.1
+docker push guitarrapc/agones-udp-server-csharp:0.1
+popd
+```
+
+(if using gameserver)
+
+download gameserver.yaml and modify to use own image.
+
+```
+curl -LO https://raw.githubusercontent.com/googleforgames/agones/release-1.0.0/examples/simple-udp/gameserver.yaml
+vim gameserver.yaml
+```
+
+```
+  template:
+    spec:
+      containers:
+      - name: simple-udp
+        image: guitarrapc/agones-udp-server-csharp:0.1
+```
+
+deploy gameserver.yaml
+
+```
+kubectl delete -f https://raw.githubusercontent.com/googleforgames/agones/release-1.0.0/examples/simple-udp/gameserver.yaml
+kubectl create -f guitarrapc/agones-udp-server-csharp:0.1
+```
+
+
+(if using fleet autoscaler)
+
+download fleet.yaml and modify to use own image.
+
+```
+curl -L -o fleet-chsarp.yaml https://raw.githubusercontent.com/googleforgames/agones/release-1.0.0/examples/simple-udp/fleet.yaml
+vim fleet.yaml
+```
+
+apply and check ready is back to desired count.
+
+```
+kubectl apply -f fleet-csharp.yaml
+kubectl get fleet -w
+```
+
+scale to 0 and 2
+
+```
+kubectl scale --replicas=0 fleet/simple-udp
+kubectl scale --replicas=2 fleet/simple-udp
+```
+
+connect and confirm change deployed.
+
+```
+$ kubectl get gs
+$ nc -u 13.231.213.229 7054
+hoge
+ACK: Echo says hoge
+moge
+ACK: Echo says moge
+EXIT
+ACK: Echo says EXITExit detected
+```
