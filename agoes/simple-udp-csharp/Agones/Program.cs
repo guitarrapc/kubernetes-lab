@@ -20,6 +20,7 @@ namespace Agones
                         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                     });
                     services.AddSingleton<IAgonesSdk, AgonesSdk>();
+                    services.AddHostedService<AgonesHostedService>();
                 })
                 .RunBatchEngineAsync<EchoUdpServerBatch>(args);
         }

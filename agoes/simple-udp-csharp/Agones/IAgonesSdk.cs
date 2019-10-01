@@ -1,5 +1,5 @@
-﻿using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace Agones
 {
@@ -11,7 +11,7 @@ namespace Agones
     {
         bool HealthEnabled { get; set; }
 
-        Task StartAsync();
+        Task StartAsync(CancellationToken token);
         Task StopAsync();
 
         /// <summary>

@@ -6,7 +6,6 @@ namespace Agones
 {
     public class NullResponse { }
 
-
     public class GameServerResponse
     {
         public Object_Meta object_meta { get; set; }

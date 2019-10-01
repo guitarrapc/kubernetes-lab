@@ -6,9 +6,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Utf8Json;
 
 namespace Agones
 {
@@ -36,9 +34,13 @@ namespace Agones
         }
 
         // entrypoint for IHostedService
-        public Task StartAsync()
+        public Task StartAsync(CancellationToken token)
         {
-            var task = HealthCheckAsync(cancellationTokenSource);
+            if (token == null)
+            {
+                token = cancellationTokenSource.Token;
+            }
+            var task = HealthCheckAsync(token);
             return task;
         }
 
@@ -116,11 +118,11 @@ namespace Agones
             return ok;
         }
 
-        private async Task HealthCheckAsync(CancellationTokenSource cts)
+        public async Task HealthCheckAsync(CancellationToken ct)
         {
             while (HealthEnabled)
             {
-                if (cts.IsCancellationRequested) throw new OperationCanceledException();
+                if (ct.IsCancellationRequested) throw new OperationCanceledException();
 
                 try
                 {
@@ -143,7 +145,7 @@ namespace Agones
         {
             return await SendRequestAsync<TResponse>(api, json, HttpMethod.Post);
         }
-        private async Task<(bool, TResponse)> SendRequestAsync<TResponse>(string api, string json, HttpMethod method) where TResponse: class
+        private async Task<(bool, TResponse)> SendRequestAsync<TResponse>(string api, string json, HttpMethod method) where TResponse : class
         {
             TResponse response = null;
             if (cancellationTokenSource.IsCancellationRequested) return (false, response);
