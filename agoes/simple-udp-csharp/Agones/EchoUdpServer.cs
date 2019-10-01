@@ -29,9 +29,6 @@ namespace Agones
         public async Task ServerLoop()
         {
             _logger.LogInformation($"{DateTime.Now} Starting Health Ping");
-            await _agonesSdk.Health();
-            await _agonesSdk.Health();
-            await _agonesSdk.Health();
             _agonesSdk.StartAsync().FireAndForget(x => _logger.LogError($"TaskUnhandled: {x.Exception}"));
 
             var done = false;

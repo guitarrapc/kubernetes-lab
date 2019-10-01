@@ -634,9 +634,9 @@ docker build and push to dockerhub.
 
 ```
 pushd simple-udp-csharp
-docker build -t agones-udp-server-csharp:0.1.9 -f Agones/Dockerfile .
-docker tag agones-udp-server-csharp:0.1.9 guitarrapc/agones-udp-server-csharp:0.1.9
-docker push guitarrapc/agones-udp-server-csharp:0.1.9
+docker build -t agones-udp-server-csharp:0.2.0 -f Agones/Dockerfile .
+docker tag agones-udp-server-csharp:0.2.0 guitarrapc/agones-udp-server-csharp:0.2.0
+docker push guitarrapc/agones-udp-server-csharp:0.2.0
 popd
 ```
 
