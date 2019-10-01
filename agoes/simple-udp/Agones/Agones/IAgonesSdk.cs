@@ -5,6 +5,9 @@ namespace Agones
     // ref: sdk server https://github.com/googleforgames/agones/blob/deab3ce0e521a98231a0ca00834276431980e7e1/pkg/sdk/sdk.pb.go#L546
     public interface IAgonesSdk
     {
+        bool HealthEnabled { get; set; }
+        bool WatchGameServerEnabled { get; set; }
+
         /// <summary>
         /// Call when the GameServer is ready
         /// </summary>

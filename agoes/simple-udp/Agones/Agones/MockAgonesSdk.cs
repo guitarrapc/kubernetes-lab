@@ -9,6 +9,9 @@ namespace Agones
 {
     class MockAgonesSdk : IHostedService, IAgonesSdk
     {
+        public bool HealthEnabled { get; set; } = true;
+        public bool WatchGameServerEnabled { get; set; } = true;
+
         public Task<bool> Allocate()
         {
             return Task.FromResult<bool>(true);

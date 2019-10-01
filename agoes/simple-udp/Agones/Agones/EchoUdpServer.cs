@@ -50,7 +50,7 @@ namespace Agones
                             break;
                         case "UNHEALTHY":
                             Console.WriteLine("Turns off health pings.");
-                            // TODO: close(stop)
+                            _agonesSdk.HealthEnabled = false;
                             break;
                         case "GAMESERVER":
                             await _agonesSdk.GetGameServer();

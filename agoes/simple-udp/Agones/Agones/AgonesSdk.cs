@@ -13,9 +13,10 @@ namespace Agones
     // ref: sdk sample https://github.com/googleforgames/agones/blob/release-1.0.0/sdks/go/sdk.go
     public class AgonesSdk : IHostedService, IAgonesSdk
     {
-        public double HealthIntervalSecond { get; private set; } = 5.0;
-        public bool HealthEnabled { get; private set; } = true;
-        public bool WatchGameServerEnabled { get; private set; } = true;
+        public double HealthIntervalSecond { get; set; } = 5.0;
+        public bool HealthEnabled { get; set; } = true;
+        public double WatchIntervalSecond { get; set; } = 5.0;
+        public bool WatchGameServerEnabled { get; set; } = true;
 
         // ref: sdk server https://github.com/googleforgames/agones/blob/master/cmd/sdk-server/main.go
         // grpc: localhost on port 59357
@@ -117,7 +118,7 @@ namespace Agones
             {
                 if (cts.IsCancellationRequested) throw new OperationCanceledException();
 
-                await Task.Delay(TimeSpan.FromSeconds(HealthIntervalSecond));
+                await Task.Delay(TimeSpan.FromSeconds(WatchIntervalSecond));
 
                 try
                 {
