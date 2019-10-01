@@ -625,6 +625,29 @@ EXIT
 ACK: Echo says EXITExit detected
 ```
 
+## Local Development
+
+> REF: https://agones.dev/site/docs/guides/client-sdks/local/
+
+You can execute agones not only on k8s but also local.
+
+download agonessdk-server-x.x.x.zip and use you environment executable with argument `--local`.
+
+> https://github.com/googleforgames/agones/releases
+
+windows sample.
+
+```
+sdk-server.windows.amd64.exe --local
+```
+
+now you can test your grpc or REST connection with agones sdk.
+
+here's swagger template, use swagger for your REST implementaion.
+
+> https://github.com/googleforgames/agones/blob/release-1.0.0/sdk.swagger.json
+
+> https://editor.swagger.io/
 
 ## Edit game server (CSharp)
 
@@ -702,4 +725,25 @@ moge
 ACK: Echo says moge
 EXIT
 ACK: Echo says EXITExit detected
+```
+
+## MagicOnion ChatApp
+
+```
+docker build -t agones-udp-server-magiconionchatapp:0.1.1 -f ChatApp.Server/Dockerfile .
+docker tag agones-udp-server-magiconionchatapp:0.1.1 guitarrapc/agones-udp-server-magiconionchatapp:0.1.1
+docker push guitarrapc/agones-udp-server-magiconionchatapp:0.1.1
+```
+
+```
+vim fleet-csharp-magiconionchatapp.yaml
+kubectl apply -f fleet-csharp-magiconionchatapp.yaml
+kubectl get fleet -w
+kubectl delete -f fleet-csharp-magiconionchatapp.yaml
+```
+
+```
+kubectl scale --replicas=0 fleet/simple-udp
+kubectl scale --replicas=1 fleet/simple-udp
+kubectl scale --replicas=2 fleet/simple-udp
 ```
