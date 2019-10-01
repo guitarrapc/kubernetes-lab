@@ -14,7 +14,22 @@ namespace Agones
             return Task.FromResult<bool>(true);
         }
 
+        public Task<bool> GetGameServer()
+        {
+            return Task.FromResult<bool>(true);
+        }
+
+        public Task<bool> Health()
+        {
+            return Task.FromResult<bool>(true);
+        }
+
         public Task<bool> Ready()
+        {
+            return Task.FromResult<bool>(true);
+        }
+
+        public Task<bool> Reserve()
         {
             return Task.FromResult<bool>(true);
         }
@@ -42,6 +57,12 @@ namespace Agones
         public Task StopAsync(CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
+        }
+
+        public Task<bool> WatchGameServer()
+        {
+            // stream どうするの?
+            return Task.FromResult<bool>(true);
         }
     }
 }

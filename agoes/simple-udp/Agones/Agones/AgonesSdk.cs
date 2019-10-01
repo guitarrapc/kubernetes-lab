@@ -10,15 +10,17 @@ using Microsoft.Extensions.Logging;
 
 namespace Agones
 {
+    // ref: sdk sample https://github.com/googleforgames/agones/blob/release-1.0.0/sdks/go/sdk.go
     public class AgonesSdk : IHostedService, IAgonesSdk
     {
         public double HealthIntervalSecond { get; private set; } = 5.0;
         public bool HealthEnabled { get; private set; } = true;
-        public bool logEnabled { get; private set; } = false;
+        public bool WatchGameServerEnabled { get; private set; } = true;
 
-        // https://github.com/googleforgames/agones/blob/release-1.0.0/sdks/go/sdk.go
-        // localhost on port 59357
-        readonly Uri SideCarAddress = new Uri("http://localhost:59357");
+        // ref: sdk server https://github.com/googleforgames/agones/blob/master/cmd/sdk-server/main.go
+        // grpc: localhost on port 59357
+        // http: localhost on port 59358
+        readonly Uri SideCarAddress = new Uri("http://localhost:59358");
         readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         readonly IHttpClientFactory _httpClientFactory;
         readonly ILogger<IAgonesSdk> _logger;
@@ -29,74 +31,61 @@ namespace Agones
             _logger = logger;
         }
 
+        // entrypoint for IHostedService
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            var cts = new CancellationTokenSource();
-            cts.CancelAfter(TimeSpan.FromSeconds(30));
-            await HealthCheckAsync(cts);
+            await HealthCheckAsync(cancellationTokenSource);
         }
 
+        // exit for IHostedService
         public Task StopAsync(CancellationToken cancellationToken)
         {
             cancellationTokenSource?.Dispose();
             return Task.CompletedTask;
         }
 
-        /// <summary>
-        /// Marks this Game Server as ready to receive connections.
-        /// </summary>
-        /// <returns>
-        /// A task that represents the asynchronous operation and returns true if the request was successful.
-        /// </returns>
         public async Task<bool> Ready()
         {
             return await SendRequestAsync("/ready", "{}");
         }
 
-        /// <summary>
-        /// Marks this Game Server as ready to shutdown.
-        /// </summary>
-        /// <returns>
-        /// A task that represents the asynchronous operation and returns true if the request was successful.
-        /// </returns>
-        public async Task<bool> Shutdown()
-        {
-            return await SendRequestAsync("/shutdown", "{}");
-        }
-
-        /// <summary>
-        /// Marks this Game Server as Allocated.
-        /// </summary>
-        /// <returns>
-        /// A task that represents the asynchronous operation and returns true if the request was successful.
-        /// </returns>
         public async Task<bool> Allocate()
         {
             return await SendRequestAsync("/allocate", "{}");
         }
 
-        /// <summary>
-        /// Set a metadata label that is stored in k8s.
-        /// </summary>
-        /// <param name="key">label key</param>
-        /// <param name="value">label value</param>
-        /// <returns>
-        /// A task that represents the asynchronous operation and returns true if the request was successful.
-        /// </returns>
+        public async Task<bool> Shutdown()
+        {
+            return await SendRequestAsync("/shutdown", "{}");
+        }
+
+        public async Task<bool> Health()
+        {
+            return await SendRequestAsync("/health", "{}");
+        }
+
+        public async Task<bool> GetGameServer()
+        {
+            // TODO: return GameServer
+            return await SendRequestAsync("/getgameserver", "{}");
+        }
+
+        public async Task<bool> WatchGameServer()
+        {
+            return await SendRequestAsync("/watchgameserver", "{}");
+        }
+
+        public async Task<bool> Reserve()
+        {
+            return await SendRequestAsync("/reserve", "{}");
+        }
+
         public async Task<bool> SetLabel(string key, string value)
         {
             string json = Utf8Json.JsonSerializer.ToJsonString(new KeyValueMessage(key, value));
             return await SendRequestAsync("/metadata/label", json, HttpMethod.Put);
         }
 
-        /// <summary>
-        /// Set a metadata annotation that is stored in k8s.
-        /// </summary>
-        /// <param name="key">annotation key</param>
-        /// <param name="value">annotation value</param>
-        /// <returns>
-        /// A task that represents the asynchronous operation and returns true if the request was successful.
-        /// </returns>
         public async Task<bool> SetAnnotation(string key, string value)
         {
             string json = Utf8Json.JsonSerializer.ToJsonString(new KeyValueMessage(key, value));
@@ -113,7 +102,7 @@ namespace Agones
 
                 try
                 {
-                    await SendRequestAsync("/health", "{}");
+                    await Health();
                 }
                 catch (ObjectDisposedException)
                 {
@@ -122,6 +111,24 @@ namespace Agones
             }
         }
 
+        private async Task WatchGameServerAsync(CancellationTokenSource cts)
+        {
+            while (WatchGameServerEnabled)
+            {
+                if (cts.IsCancellationRequested) throw new OperationCanceledException();
+
+                await Task.Delay(TimeSpan.FromSeconds(HealthIntervalSecond));
+
+                try
+                {
+                    await WatchGameServer();
+                }
+                catch (ObjectDisposedException)
+                {
+                    break;
+                }
+            }
+        }
         private async Task<bool> SendRequestAsync(string api, string json)
         {
             return await SendRequestAsync(api, json, HttpMethod.Post);
@@ -140,11 +147,11 @@ namespace Agones
             var ok = request.StatusCode == HttpStatusCode.OK;
             if (ok)
             {
-                _logger.LogInformation($"Agones SendRequest ok: {api} {content}");
+                _logger.LogDebug($"Agones SendRequest ok: {api} {content}");
             }
             else
             {
-                _logger.LogInformation($"Agones SendRequest failed: {api} {request.ReasonPhrase}");
+                _logger.LogDebug($"Agones SendRequest failed: {api} {request.ReasonPhrase}");
             }
 
             return ok;

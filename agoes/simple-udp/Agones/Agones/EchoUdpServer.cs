@@ -42,17 +42,18 @@ namespace Agones
                     switch (parts[0])
                     {
                         case "EXIT":
-                            Console.WriteLine("Exiting.");
+                            Console.WriteLine("Shutdown gameserver.");
                             done = true;
                             await _agonesSdk.Shutdown();
                             var exitMessage = _encoding.GetBytes("ACK: " + txt + "\n");
                             await udpClient.SendAsync(exitMessage, exitMessage.Length, sender);
                             break;
                         case "UNHEALTHY":
+                            Console.WriteLine("Turns off health pings.");
                             // TODO: close(stop)
                             break;
                         case "GAMESERVER":
-                            // TODO: gameServerName
+                            await _agonesSdk.GetGameServer();
                             var gameserverMessage = _encoding.GetBytes("GAMESERVER NAME" + "\n");
                             await udpClient.SendAsync(gameserverMessage, gameserverMessage.Length, sender);
                             break;
@@ -63,10 +64,10 @@ namespace Agones
                             await _agonesSdk.Allocate();
                             break;
                         case "RESERVE":
-                            // TODO: reserve
+                            await _agonesSdk.Reserve();
                             break;
                         case "WATCH":
-                            // TODO: watchGameServerEvents
+                            await _agonesSdk.WatchGameServer();
                             break;
                         case "LABEL":
                             switch (parts.Length)
