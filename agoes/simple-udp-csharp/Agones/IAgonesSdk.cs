@@ -1,12 +1,18 @@
 ﻿using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
 
 namespace Agones
 {
+    // should implement: ready,allocate,setlabel,setannotation,gameserver,health,shutdown,watch
+    // https://agones.dev/site/docs/guides/client-sdks/#rest-api-implementation
+    // spec: https://github.com/googleforgames/agones/blob/release-1.0.0/sdk.swagger.json
     // ref: sdk server https://github.com/googleforgames/agones/blob/deab3ce0e521a98231a0ca00834276431980e7e1/pkg/sdk/sdk.pb.go#L546
     public interface IAgonesSdk
     {
         bool HealthEnabled { get; set; }
-        bool WatchGameServerEnabled { get; set; }
+
+        Task StartAsync();
+        Task StopAsync();
 
         /// <summary>
         /// Call when the GameServer is ready
@@ -15,7 +21,7 @@ namespace Agones
         /// <returns></returns>
         Task<bool> Ready();
         /// <summary>
-        /// Call to self Allocation the GameServer
+        /// Call to self Allocation the GameServer (POST)
         /// </summary>
         /// <remarks>/Allocate</remarks>
         /// <returns></returns>
@@ -37,13 +43,13 @@ namespace Agones
         /// </summary>
         /// <remarks>/GetGameServer</remarks>
         /// <returns></returns>
-        Task<bool> GetGameServer();
+        Task<(bool ok, GameServerResponse response)> GameServer();
         /// <summary>
         /// Send GameServer details whenever the GameServer is updated
         /// </summary>
         /// <remarks>/WatchGameServer (stream)</remarks>
         /// <returns></returns>
-        Task<bool> WatchGameServer();
+        Task<(bool, GameServerResponse)> Watch();
         /// <summary>
         /// Apply a Label to the backing GameServer metadata
         /// </summary>
@@ -65,6 +71,6 @@ namespace Agones
         /// </summary>
         /// <remarks>/Reserve</remarks>
         /// <returns></returns>
-        Task<bool> Reserve();
+        Task<bool> Reserve(int seconds);
     }
 }

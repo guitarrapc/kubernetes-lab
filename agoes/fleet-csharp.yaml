@@ -27,7 +27,8 @@ spec:
         spec:
           containers:
           - name: simple-udp
-            image: guitarrapc/agones-udp-server-csharp:0.1
+            image: guitarrapc/agones-udp-server-csharp:0.1.2
+            imagePullPolicy: Always
             resources:
               requests:
                 memory: "64Mi"

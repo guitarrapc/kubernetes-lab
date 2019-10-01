@@ -19,7 +19,7 @@ namespace Agones
                     {
                         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                     });
-                    services.AddSingleton<IAgonesSdk, MockAgonesSdk>();
+                    services.AddSingleton<IAgonesSdk, AgonesSdk>();
                 })
                 .RunBatchEngineAsync<EchoUdpServerBatch>(args);
         }
@@ -39,7 +39,18 @@ namespace Agones
         public async Task RunEchoServer()
         {
             Context.Logger.LogInformation($"Starting Echo UdpServer with AgonesSdk. {host}:{port}");
-            await new EchoUdpServer(host, port, _agonesSdk).ServerLoop();
+            await new EchoUdpServer(host, port, _agonesSdk, Context.Logger).ServerLoop();
+        }
+    }
+
+    public static class TaskExtensions
+    {
+        public static void FireAndForget(this Task task, Action<Task> action)
+        {
+            task.ContinueWith(x =>
+            {
+                action(x);
+            }, TaskContinuationOptions.OnlyOnFaulted);
         }
     }
 }

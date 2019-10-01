@@ -10,16 +10,29 @@ namespace Agones
     class MockAgonesSdk : IHostedService, IAgonesSdk
     {
         public bool HealthEnabled { get; set; } = true;
-        public bool WatchGameServerEnabled { get; set; } = true;
+
+        public Task StartAsync()
+        {
+            return Task.CompletedTask;
+        }
+        public Task StopAsync()
+        {
+            return Task.CompletedTask;
+        }
 
         public Task<bool> Allocate()
         {
             return Task.FromResult<bool>(true);
         }
 
-        public Task<bool> GetGameServer()
+        public Task<(bool, GameServerResponse)> GameServer()
         {
-            return Task.FromResult<bool>(true);
+            return Task.FromResult<(bool, GameServerResponse)>((true, null));
+        }
+        public Task<(bool, GameServerResponse)> Watch()
+        {
+            // stream どうするの?
+            return Task.FromResult<(bool, GameServerResponse)>((true, null));
         }
 
         public Task<bool> Health()
@@ -32,7 +45,7 @@ namespace Agones
             return Task.FromResult<bool>(true);
         }
 
-        public Task<bool> Reserve()
+        public Task<bool> Reserve(int seconds)
         {
             return Task.FromResult<bool>(true);
         }
@@ -60,12 +73,6 @@ namespace Agones
         public Task StopAsync(CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
-        }
-
-        public Task<bool> WatchGameServer()
-        {
-            // stream どうするの?
-            return Task.FromResult<bool>(true);
         }
     }
 }

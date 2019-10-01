@@ -4,6 +4,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using MicroBatchFramework;
+using Microsoft.Extensions.Logging;
 
 namespace Agones
 {
@@ -13,27 +15,34 @@ namespace Agones
         private int _port;
         private Encoding _encoding;
         private IAgonesSdk _agonesSdk;
+        private ILogger<BatchEngine> _logger;
 
-        public EchoUdpServer(string ipAddress, int port, IAgonesSdk agnoesSdk)
+        public EchoUdpServer(string ipAddress, int port, IAgonesSdk agnoesSdk, ILogger<BatchEngine> logger)
         {
             _ipAddress = ipAddress;
             _port = port;
             _encoding = new UTF8Encoding(false);
             _agonesSdk = agnoesSdk;
+            _logger = logger;
         }
 
         public async Task ServerLoop()
         {
-            var isReady = await _agonesSdk.Ready();
-            if (!isReady) throw new Exception("Could not prepare Agones.");
+            _logger.LogInformation($"Starting Health Ping");
+            _agonesSdk.StartAsync().FireAndForget(x => _logger.LogError($"TaskUnhandled: {x.Exception}"));
 
             var done = false;
             var exited = false;
             var crashed = false;
 
+            Console.WriteLine($"Starting UDP server, listening on port {_port}");
             var listener = new IPEndPoint(IPAddress.Parse(_ipAddress), _port);
             using (var udpClient = new UdpClient(listener))
             {
+                Console.WriteLine("Marking this server as ready");
+                var isReady = await _agonesSdk.Ready();
+                if (!isReady) throw new Exception("Could not prepare Agones.");
+
                 while (!done)
                 {
                     var receive = await udpClient.ReceiveAsync();
@@ -42,19 +51,19 @@ namespace Agones
                     switch (parts[0])
                     {
                         case "EXIT":
-                            Console.WriteLine("Shutdown gameserver.");
+                            _logger.LogInformation("Shutdown gameserver.");
                             done = true;
                             await _agonesSdk.Shutdown();
                             var exitMessage = _encoding.GetBytes("ACK: " + txt + "\n");
                             await udpClient.SendAsync(exitMessage, exitMessage.Length, sender);
                             break;
                         case "UNHEALTHY":
-                            Console.WriteLine("Turns off health pings.");
+                            _logger.LogInformation("Turns off health pings.");
                             _agonesSdk.HealthEnabled = false;
                             break;
                         case "GAMESERVER":
-                            await _agonesSdk.GetGameServer();
-                            var gameserverMessage = _encoding.GetBytes("GAMESERVER NAME" + "\n");
+                            var gameserver = await _agonesSdk.GameServer();
+                            var gameserverMessage = _encoding.GetBytes(gameserver.response.status.address + ":" + gameserver.response.status.ports[0].port + "\n");
                             await udpClient.SendAsync(gameserverMessage, gameserverMessage.Length, sender);
                             break;
                         case "READY":
@@ -64,10 +73,11 @@ namespace Agones
                             await _agonesSdk.Allocate();
                             break;
                         case "RESERVE":
-                            await _agonesSdk.Reserve();
+                            int.TryParse(parts[1], out var seconds);
+                            await _agonesSdk.Reserve(seconds);
                             break;
                         case "WATCH":
-                            await _agonesSdk.WatchGameServer();
+                            await _agonesSdk.Watch();
                             break;
                         case "LABEL":
                             switch (parts.Length)
@@ -76,7 +86,7 @@ namespace Agones
                                     // legacy format
                                     await _agonesSdk.SetLabel("timestamp", DateTime.Now.ToUniversalTime().ToString());
                                     break;
-                                case 2:
+                                case 3:
                                     await _agonesSdk.SetLabel(parts[1], parts[2]);
                                     break;
                                 default:
@@ -84,11 +94,6 @@ namespace Agones
                                     await udpClient.SendAsync(labelMessage, labelMessage.Length, sender);
                                     continue;
                             }
-                            break;
-                        case "CRASH":
-                            Console.WriteLine("Crashing.");
-                            done = true;
-                            crashed = true;
                             break;
                         case "ANNOTATION":
                             switch (parts.Length)
@@ -106,6 +111,11 @@ namespace Agones
                                     continue;
                             }
                             break;
+                        case "CRASH":
+                            _logger.LogInformation("Crashing.");
+                            done = true;
+                            crashed = true;
+                            throw new Exception("Force crash by Client request.");
                         default:
                             var echoMessage = _encoding.GetBytes("ACK: " + txt + "\n");
                             await udpClient.SendAsync(echoMessage, echoMessage.Length, sender);

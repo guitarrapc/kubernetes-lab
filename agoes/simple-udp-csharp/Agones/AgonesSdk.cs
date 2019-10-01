@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -7,16 +8,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Utf8Json;
 
 namespace Agones
 {
     // ref: sdk sample https://github.com/googleforgames/agones/blob/release-1.0.0/sdks/go/sdk.go
-    public class AgonesSdk : IHostedService, IAgonesSdk
+    public class AgonesSdk : IAgonesSdk
     {
-        public double HealthIntervalSecond { get; set; } = 5.0;
+        public double HealthIntervalSecond { get; set; } = 2.0;
         public bool HealthEnabled { get; set; } = true;
-        public double WatchIntervalSecond { get; set; } = 5.0;
-        public bool WatchGameServerEnabled { get; set; } = true;
+        static readonly Encoding encoding = new UTF8Encoding(false);
+        static readonly ConcurrentDictionary<string, StringContent> jsonCache = new ConcurrentDictionary<string, StringContent>();
 
         // ref: sdk server https://github.com/googleforgames/agones/blob/master/cmd/sdk-server/main.go
         // grpc: localhost on port 59357
@@ -30,16 +32,18 @@ namespace Agones
         {
             _httpClientFactory = httpClientFactory;
             _logger = logger;
+            jsonCache.TryAdd("{}", new StringContent("{}", encoding, "application/json"));
         }
 
         // entrypoint for IHostedService
-        public async Task StartAsync(CancellationToken cancellationToken)
+        public Task StartAsync()
         {
-            await HealthCheckAsync(cancellationTokenSource);
+            var task = HealthCheckAsync(cancellationTokenSource);
+            return task;
         }
 
         // exit for IHostedService
-        public Task StopAsync(CancellationToken cancellationToken)
+        public Task StopAsync()
         {
             cancellationTokenSource?.Dispose();
             return Task.CompletedTask;
@@ -47,50 +51,69 @@ namespace Agones
 
         public async Task<bool> Ready()
         {
-            return await SendRequestAsync("/ready", "{}");
+            _logger.LogInformation("Calling Read sdk.");
+            var (ok, _) = await SendRequestAsync<NullResponse>("/ready", "{}");
+            return ok;
         }
 
         public async Task<bool> Allocate()
         {
-            return await SendRequestAsync("/allocate", "{}");
+            _logger.LogInformation("Calling Allocate sdk.");
+            var (ok, _) = await SendRequestAsync<NullResponse>("/allocate", "{}");
+            return ok;
         }
 
         public async Task<bool> Shutdown()
         {
-            return await SendRequestAsync("/shutdown", "{}");
+            _logger.LogInformation("Calling Shutdown sdk.");
+            var (ok, _) = await SendRequestAsync<NullResponse>("/shutdown", "{}");
+            return ok;
         }
 
         public async Task<bool> Health()
         {
-            return await SendRequestAsync("/health", "{}");
+            _logger.LogInformation("Calling Health sdk.");
+            var (ok, _) = await SendRequestAsync<NullResponse>("/health", "{}");
+            return ok;
         }
 
-        public async Task<bool> GetGameServer()
+        public async Task<(bool, GameServerResponse)> GameServer()
         {
             // TODO: return GameServer
-            return await SendRequestAsync("/getgameserver", "{}");
+            _logger.LogInformation("Calling GetGameServer sdk.");
+            var response = await SendRequestAsync<GameServerResponse>("/gameserver", "{}", HttpMethod.Get);
+            return response;
         }
 
-        public async Task<bool> WatchGameServer()
+        public async Task<(bool, GameServerResponse)> Watch()
         {
-            return await SendRequestAsync("/watchgameserver", "{}");
+            _logger.LogInformation("Calling WatchGameServer sdk.");
+            var response = await SendRequestAsync<GameServerResponse>("/watch/gameserver", "{}", HttpMethod.Get);
+            return response;
         }
 
-        public async Task<bool> Reserve()
+        public async Task<bool> Reserve(int seconds)
         {
-            return await SendRequestAsync("/reserve", "{}");
+            _logger.LogInformation("Calling Reserve sdk.");
+            string json = Utf8Json.JsonSerializer.ToJsonString(new ReserveBody(seconds));
+            var (ok, _) = await SendRequestAsync<NullResponse>("/reserve", json);
+            return ok;
         }
 
         public async Task<bool> SetLabel(string key, string value)
         {
+            _logger.LogInformation("Calling SetLabel sdk.");
             string json = Utf8Json.JsonSerializer.ToJsonString(new KeyValueMessage(key, value));
-            return await SendRequestAsync("/metadata/label", json, HttpMethod.Put);
+            var (ok, _) = await SendRequestAsync<NullResponse>("/metadata/label", json, HttpMethod.Put);
+            return ok;
         }
 
         public async Task<bool> SetAnnotation(string key, string value)
         {
+            _logger.LogInformation("Calling SetAnnotation sdk.");
             string json = Utf8Json.JsonSerializer.ToJsonString(new KeyValueMessage(key, value));
-            return await SendRequestAsync("/metadata/annotation", json, HttpMethod.Put);
+            var (ok, _) = await SendRequestAsync<NullResponse>("/metadata/annotation", json, HttpMethod.Put);
+            return ok;
         }
 
         private async Task HealthCheckAsync(CancellationTokenSource cts)
@@ -112,50 +135,52 @@ namespace Agones
             }
         }
 
-        private async Task WatchGameServerAsync(CancellationTokenSource cts)
+        private async Task<(bool, TResponse)> SendRequestAsync<TResponse>(string api, string json) where TResponse : class
         {
-            while (WatchGameServerEnabled)
-            {
-                if (cts.IsCancellationRequested) throw new OperationCanceledException();
-
-                await Task.Delay(TimeSpan.FromSeconds(WatchIntervalSecond));
-
-                try
-                {
-                    await WatchGameServer();
-                }
-                catch (ObjectDisposedException)
-                {
-                    break;
-                }
-            }
+            return await SendRequestAsync<TResponse>(api, json, HttpMethod.Post);
         }
-        private async Task<bool> SendRequestAsync(string api, string json)
+        private async Task<(bool, TResponse)> SendRequestAsync<TResponse>(string api, string json, HttpMethod method) where TResponse: class
         {
-            return await SendRequestAsync(api, json, HttpMethod.Post);
-        }
-
-        private async Task<bool> SendRequestAsync(string api, string json, HttpMethod method)
-        {
-            if (cancellationTokenSource.IsCancellationRequested) return false;
+            TResponse response = null;
+            if (cancellationTokenSource.IsCancellationRequested) return (false, response);
 
             var httpClient = _httpClientFactory.CreateClient("agones");
             httpClient.BaseAddress = SideCarAddress;
             var requestMessage = new HttpRequestMessage(method, api);
-            var request = await httpClient.SendAsync(requestMessage);
-            var content = await request.Content.ReadAsStringAsync();
-
-            var ok = request.StatusCode == HttpStatusCode.OK;
-            if (ok)
+            try
             {
-                _logger.LogDebug($"Agones SendRequest ok: {api} {content}");
-            }
-            else
-            {
-                _logger.LogDebug($"Agones SendRequest failed: {api} {request.ReasonPhrase}");
-            }
+                if (jsonCache.TryGetValue(json, out var cachedContent))
+                {
+                    requestMessage.Content = cachedContent;
+                }
+                else
+                {
+                    var byteContent = new StringContent(json, encoding, "application/json");
+                    jsonCache.TryAdd(json, byteContent);
+                }
+                var request = await httpClient.SendAsync(requestMessage);
 
-            return ok;
+                // result
+                var content = await request.Content.ReadAsByteArrayAsync();
+                if (content != null)
+                {
+                    response = Utf8Json.JsonSerializer.Deserialize<TResponse>(content);
+                }
+                _logger.LogInformation($"Agones SendRequest ok: {api} {response}");
+                var isOk = request.StatusCode == HttpStatusCode.OK;
+                return (isOk, response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInformation($"Agones SendRequest failed: {api} {ex.GetType().FullName} {ex.Message} {ex.StackTrace}");
+                return (false, response);
+            }
+        }
+
+        public class ReserveBody
+        {
+            public int Seconds { get; set; }
+            public ReserveBody(int seconds) => Seconds = seconds;
         }
 
         public class KeyValueMessage
