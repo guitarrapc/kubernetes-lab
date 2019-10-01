@@ -15,4 +15,4 @@ RUN dotnet publish "Agones.csproj" -c Release -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Agones.dll"]
+CMD sleep 1 && dotnet Agones.dll

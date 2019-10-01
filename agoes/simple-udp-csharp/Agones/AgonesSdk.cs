@@ -15,7 +15,7 @@ namespace Agones
     // ref: sdk sample https://github.com/googleforgames/agones/blob/release-1.0.0/sdks/go/sdk.go
     public class AgonesSdk : IAgonesSdk
     {
-        public double HealthIntervalSecond { get; set; } = 2.0;
+        public int HealthIntervalSecond { get; set; } = 2;
         public bool HealthEnabled { get; set; } = true;
         static readonly Encoding encoding = new UTF8Encoding(false);
         static readonly ConcurrentDictionary<string, StringContent> jsonCache = new ConcurrentDictionary<string, StringContent>();
@@ -23,7 +23,7 @@ namespace Agones
         // ref: sdk server https://github.com/googleforgames/agones/blob/master/cmd/sdk-server/main.go
         // grpc: localhost on port 59357
         // http: localhost on port 59358
-        readonly Uri SideCarAddress = new Uri("http://localhost:59358");
+        readonly Uri SideCarAddress = new Uri("http://127.0.0.1:59358");
         readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         readonly IHttpClientFactory _httpClientFactory;
         readonly ILogger<IAgonesSdk> _logger;
@@ -51,7 +51,7 @@ namespace Agones
 
         public async Task<bool> Ready()
         {
-            _logger.LogInformation("Calling Read sdk.");
+            _logger.LogInformation("Calling Ready sdk.");
             var (ok, _) = await SendRequestAsync<NullResponse>("/ready", "{}");
             return ok;
         }
@@ -72,7 +72,7 @@ namespace Agones
 
         public async Task<bool> Health()
         {
-            _logger.LogInformation("Calling Health sdk.");
+            _logger.LogInformation($"{DateTime.Now} Calling Health sdk.");
             var (ok, _) = await SendRequestAsync<NullResponse>("/health", "{}");
             return ok;
         }
@@ -122,16 +122,20 @@ namespace Agones
             {
                 if (cts.IsCancellationRequested) throw new OperationCanceledException();
 
-                await Task.Delay(TimeSpan.FromSeconds(HealthIntervalSecond));
-
                 try
                 {
                     await Health();
                 }
-                catch (ObjectDisposedException)
+                catch (ObjectDisposedException oex)
                 {
-                    break;
+                    _logger.LogError($"health detect error, let retry. {oex.Message}");
                 }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"health detect error, let retry. {ex.Message}");
+                }
+
+                await Task.Delay(TimeSpan.FromSeconds(HealthIntervalSecond));
             }
         }
 

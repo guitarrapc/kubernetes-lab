@@ -430,6 +430,7 @@ Deploy webhook service for autoscaling.
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/googleforgames/agones/release-1.0.0/examples/autoscaler-webhook/autoscaler-service.yaml
+kubectl delete -f https://raw.githubusercontent.com/googleforgames/agones/release-1.0.0/examples/autoscaler-webhook/autoscaler-service.yaml
 ```
 
 confirm liveness probe is fine.
@@ -633,9 +634,9 @@ docker build and push to dockerhub.
 
 ```
 pushd simple-udp-csharp
-docker build -t agones-udp-server-csharp:0.1.2 -f Agones/Dockerfile .
-docker tag agones-udp-server-csharp:0.1.2 guitarrapc/agones-udp-server-csharp:0.1.2
-docker push guitarrapc/agones-udp-server-csharp:0.1.2
+docker build -t agones-udp-server-csharp:0.1.9 -f Agones/Dockerfile .
+docker tag agones-udp-server-csharp:0.1.9 guitarrapc/agones-udp-server-csharp:0.1.9
+docker push guitarrapc/agones-udp-server-csharp:0.1.9
 popd
 ```
 
@@ -660,7 +661,8 @@ deploy gameserver.yaml
 
 ```
 kubectl delete -f https://raw.githubusercontent.com/googleforgames/agones/release-1.0.0/examples/simple-udp/gameserver.yaml
-kubectl create -f guitarrapc/agones-udp-server-csharp:0.1
+kubectl create -f gameserver-csharp.yaml
+kubectl delete -f gameserver-csharp.yaml
 ```
 
 
@@ -678,12 +680,14 @@ apply and check ready is back to desired count.
 ```
 kubectl apply -f fleet-csharp.yaml
 kubectl get fleet -w
+kubectl delete -f fleet-csharp.yaml
 ```
 
 scale to 0 and 2
 
 ```
 kubectl scale --replicas=0 fleet/simple-udp
+kubectl scale --replicas=1 fleet/simple-udp
 kubectl scale --replicas=2 fleet/simple-udp
 ```
 

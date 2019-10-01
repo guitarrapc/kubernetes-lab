@@ -23,11 +23,13 @@ spec:
       ports:
       - name: default
         containerPort: 7654
+      health:
+        initialDelaySeconds: 15
       template:
         spec:
           containers:
           - name: simple-udp
-            image: guitarrapc/agones-udp-server-csharp:0.1.2
+            image: guitarrapc/agones-udp-server-csharp:0.1.9
             imagePullPolicy: Always
             resources:
               requests:
