@@ -1,12 +1,12 @@
-## Setting up Agoes cluster on EKS
+## Setting up Agones cluster on EKS
 
 > REF: https://agones.dev/site/docs/installation/
 
-create eks cluster with 1.12 (agoes currently support 1.12 and n-1 version.)
+create eks cluster with 1.12 (agones currently support 1.12 and n-1 version.)
 
 ```
 eksctl create cluster \
---name agoes \
+--name agones \
 --version 1.12 \
 --nodegroup-name standard-workers \
 --node-type t3.medium \
@@ -19,13 +19,13 @@ eksctl create cluster \
 Allow udp on node
 
 ```
-clusterName=agoes
+clusterName=agones
 vpcId=$(aws ec2 describe-vpcs --filters "Name=tag:alpha.eksctl.io/cluster-name,Values=$clusterName" | jq -r '.Vpcs[].VpcId')
 groupId=$(aws ec2 describe-security-groups --filters "Name=tag:alpha.eksctl.io/nodegroup-name,Values=standard-workers" "Name=tag:alpha.eksctl.io/cluster-name,Values=$clusterName" "Name=vpc-id,Values=$vpcId" | jq -r '.SecurityGroups[].GroupId')
 aws ec2 authorize-security-group-ingress --group-id $groupId --protocol udp --port 7000-8000 --cidr 0.0.0.0/0
 ```
 
-## Install Agoes
+## Install Agones
 
 > REF: https://agones.dev/site/docs/installation/#installing-agones
 
