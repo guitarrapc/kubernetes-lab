@@ -30,7 +30,7 @@ spec:
         spec:
           containers:
           - name: simple-udp
-            image: guitarrapc/agones-udp-server-magiconionchatapp:0.1.2
+            image: guitarrapc/agones-magiconionchatapp:0.1.2
             imagePullPolicy: Always
             resources:
               requests:

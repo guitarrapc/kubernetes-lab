@@ -15,7 +15,7 @@
 apiVersion: "agones.dev/v1"
 kind: GameServer
 metadata:
-  generateName: "simple-udp-magiconion-"
+  generateName: "magiconion-chatappserver-"
 spec:
   ports:
   - name: default
@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
       - name: simple-udp
-        image: guitarrapc/agones-udp-server-magiconionchatapp:0.1.2
+        image: guitarrapc/agones-magiconionchatapp:0.1.2
         resources:
           requests:
             memory: "32Mi"

@@ -732,9 +732,9 @@ ACK: Echo says EXITExit detected
 docker push
 
 ```
-docker build -t agones-udp-server-magiconionchatapp:0.1.2 -f ChatApp.Server/Dockerfile .
-docker tag agones-udp-server-magiconionchatapp:0.1.2 guitarrapc/agones-udp-server-magiconionchatapp:0.1.2
-docker push guitarrapc/agones-udp-server-magiconionchatapp:0.1.2
+docker build -t agones-magiconionchatapp:0.1.2 -f ChatApp.Server/Dockerfile .
+docker tag agones-magiconionchatapp:0.1.2 guitarrapc/agones-magiconionchatapp:0.1.2
+docker push guitarrapc/agones-magiconionchatapp:0.1.2
 ```
 
 create fleet and wait for Ready.
