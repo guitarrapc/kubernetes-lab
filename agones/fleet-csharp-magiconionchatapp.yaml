@@ -15,7 +15,7 @@
 apiVersion: "agones.dev/v1"
 kind: Fleet
 metadata:
-  name: simple-udp
+  name: magiconion-chatserver
 spec:
   replicas: 2
   template:
@@ -29,7 +29,7 @@ spec:
       template:
         spec:
           containers:
-          - name: simple-udp
+          - name: magiconion-chatserver
             image: guitarrapc/agones-magiconionchatapp:0.1.2
             imagePullPolicy: Always
             resources:

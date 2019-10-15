@@ -757,12 +757,12 @@ kubectl create -f gameserverallocation.yaml
 ```
 kubectl create -f gameserver-csharp-magiconion.yaml
 kubectl get gs
-kubectl delete gs simple-udp-magiconion-
+kubectl delete gs magiconion-chatserver-
 ```
 
 ```
-kubectl scale --replicas=0 fleet/simple-udp
-kubectl scale --replicas=1 fleet/simple-udp
-kubectl scale --replicas=2 fleet/simple-udp
+kubectl scale --replicas=0 fleet/magiconion-chatserver
+kubectl scale --replicas=1 fleet/magiconion-chatserver
+kubectl scale --replicas=2 fleet/magiconion-chatserver
 ```
 

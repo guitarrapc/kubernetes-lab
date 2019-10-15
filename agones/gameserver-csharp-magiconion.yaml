@@ -27,7 +27,7 @@ spec:
   template:
     spec:
       containers:
-      - name: simple-udp
+      - name: magiconion-chatserver
         image: guitarrapc/agones-magiconionchatapp:0.1.2
         resources:
           requests:
