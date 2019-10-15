@@ -729,11 +729,15 @@ ACK: Echo says EXITExit detected
 
 ## MagicOnion ChatApp
 
+docker push
+
 ```
-docker build -t agones-udp-server-magiconionchatapp:0.1.1 -f ChatApp.Server/Dockerfile .
-docker tag agones-udp-server-magiconionchatapp:0.1.1 guitarrapc/agones-udp-server-magiconionchatapp:0.1.1
-docker push guitarrapc/agones-udp-server-magiconionchatapp:0.1.1
+docker build -t agones-udp-server-magiconionchatapp:0.1.2 -f ChatApp.Server/Dockerfile .
+docker tag agones-udp-server-magiconionchatapp:0.1.2 guitarrapc/agones-udp-server-magiconionchatapp:0.1.2
+docker push guitarrapc/agones-udp-server-magiconionchatapp:0.1.2
 ```
+
+create fleet and wait for Ready.
 
 ```
 vim fleet-csharp-magiconionchatapp.yaml
@@ -742,8 +746,23 @@ kubectl get fleet -w
 kubectl delete -f fleet-csharp-magiconionchatapp.yaml
 ```
 
+allocate gameserver.
+
+```
+kubectl create -f gameserverallocation.yaml
+```
+
+> TIPS: use gameserver instead of fleet.
+
+```
+kubectl create -f gameserver-csharp-magiconion.yaml
+kubectl get gs
+kubectl delete gs simple-udp-magiconion-
+```
+
 ```
 kubectl scale --replicas=0 fleet/simple-udp
 kubectl scale --replicas=1 fleet/simple-udp
 kubectl scale --replicas=2 fleet/simple-udp
 ```
+

@@ -1,4 +1,4 @@
-# Copyright 2018 Google LLC All Rights Reserved.
+# Copyright 2017 Google LLC All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,29 +13,26 @@
 # limitations under the License.
 
 apiVersion: "agones.dev/v1"
-kind: Fleet
+kind: GameServer
 metadata:
-  name: simple-udp
+  generateName: "simple-udp-magiconion-"
 spec:
-  replicas: 2
+  ports:
+  - name: default
+    portPolicy: Dynamic
+    containerPort: 12345
+    protocol: TCP
+  health:
+    initialDelaySeconds: 30
   template:
     spec:
-      ports:
-      - name: default
-        containerPort: 12345
-        protocol: TCP
-      health:
-        initialDelaySeconds: 15
-      template:
-        spec:
-          containers:
-          - name: simple-udp
-            image: guitarrapc/agones-udp-server-magiconionchatapp:0.1.2
-            imagePullPolicy: Always
-            resources:
-              requests:
-                memory: "128Mi"
-                cpu: "20m"
-              limits:
-                memory: "256Mi"
-                cpu: "20m"
+      containers:
+      - name: simple-udp
+        image: guitarrapc/agones-udp-server-magiconionchatapp:0.1.2
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "20m"
+          limits:
+            memory: "32Mi"
+            cpu: "20m"
