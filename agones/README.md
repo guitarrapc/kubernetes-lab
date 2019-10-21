@@ -732,9 +732,9 @@ ACK: Echo says EXITExit detected
 docker push
 
 ```
-docker build -t agones-magiconionchatapp:0.1.2 -f ChatApp.Server/Dockerfile .
-docker tag agones-magiconionchatapp:0.1.2 guitarrapc/agones-magiconionchatapp:0.1.2
-docker push guitarrapc/agones-magiconionchatapp:0.1.2
+docker build -t agones-magiconionchatapp:0.1.3 -f ChatApp.Server/Dockerfile .
+docker tag agones-magiconionchatapp:0.1.3 guitarrapc/agones-magiconionchatapp:0.1.3
+docker push guitarrapc/agones-magiconionchatapp:0.1.3
 ```
 
 create fleet and wait for Ready.
@@ -766,3 +766,10 @@ kubectl scale --replicas=1 fleet/magiconion-chatserver
 kubectl scale --replicas=2 fleet/magiconion-chatserver
 ```
 
+add tcp loadbalancer, let's use nlb on AWS.
+
+```
+kubectl apply -f magiconion-service-nlb.yaml
+kubectl get gs
+kubectl delete -f magiconion-service-nlb.yaml
+```

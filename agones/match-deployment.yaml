@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: match
+  labels:
+    app: match
+spec:
+  selector:
+    app: match
+  ports:
+  - port: 12346
+    protocol: TCP
+    name: grpc
+    targetPort: match
+---
+# Deploy a pod to run the autoscaler-webhook code
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: match
+  namespace: default
+  labels:
+    app: match
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: match
+  template:
+    metadata:
+      labels:
+        app: match
+    spec:
+      serviceAccount: agones
+      containers:
+      - name: match
+        image: guitarrapc/magiconionchatapp-match:0.0.1
+        imagePullPolicy: Always
+        ports:
+        - name: match
+          containerPort: 12346
+        livenessProbe:
+          httpGet:
+            scheme: TCP
+            port: 12346
+          initialDelaySeconds: 3
+          periodSeconds: 5
+

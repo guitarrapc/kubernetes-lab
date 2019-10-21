@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-app-cluster
+  labels:
+    app: alpine
+spec:
+  serviceAccountName: my-app-cluster
+  containers:
+  - name: alpine
+    image: alpine
+    command:
+      - sleep
+      - "86400"
+    imagePullPolicy: IfNotPresent
+    

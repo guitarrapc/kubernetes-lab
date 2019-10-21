@@ -25,10 +25,13 @@ spec:
   health:
     initialDelaySeconds: 30
   template:
+    metadata:
+      labels:
+        app: magiconion
     spec:
       containers:
       - name: magiconion-chatserver
-        image: guitarrapc/agones-magiconionchatapp:0.1.2
+        image: guitarrapc/agones-magiconionchatapp:0.1.3
         resources:
           requests:
             memory: "32Mi"
