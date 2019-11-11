@@ -32,6 +32,7 @@ aws ec2 authorize-security-group-ingress --group-id $groupId --protocol udp --po
 ```
 kubectl create namespace agones-system
 kubectl apply -f https://raw.githubusercontent.com/googleforgames/agones/release-1.0.0/install/yaml/install.yaml
+kubectl delete -f https://raw.githubusercontent.com/googleforgames/agones/release-1.0.0/install/yaml/install.yaml
 ```
 
 confirm
@@ -39,6 +40,13 @@ confirm
 ```
 kubectl describe --namespace agones-system pods
 kubectl get pods --namespace agones-system
+```
+
+force delete ns
+
+```
+$ kubectl proxy &
+$ curl -k -H "Content-Type: application/json" -X PUT --data-binary @ns.json http://127.0.0.1:8001/api/v1/namespaces/agones-system/finalize
 ```
 
 ## Create GameServer
