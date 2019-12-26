@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -141,11 +142,11 @@ namespace Agones
             }
         }
 
-        private async Task<(bool, TResponse)> SendRequestAsync<TResponse>(string api, string json) where TResponse : class
+        private async Task<(bool, TResponse)> SendRequestAsync<TResponse>(string api, string json, bool useCache = true) where TResponse : class
         {
-            return await SendRequestAsync<TResponse>(api, json, HttpMethod.Post);
+            return await SendRequestAsync<TResponse>(api, json, HttpMethod.Post, useCache);
         }
-        private async Task<(bool, TResponse)> SendRequestAsync<TResponse>(string api, string json, HttpMethod method) where TResponse : class
+        private async Task<(bool, TResponse)> SendRequestAsync<TResponse>(string api, string json, HttpMethod method, bool useCache = true) where TResponse : class
         {
             TResponse response = null;
             if (cancellationTokenSource.IsCancellationRequested) return (false, response);
@@ -155,25 +156,29 @@ namespace Agones
             var requestMessage = new HttpRequestMessage(method, api);
             try
             {
-                if (jsonCache.TryGetValue(json, out var cachedContent))
+                if (useCache)
                 {
-                    requestMessage.Content = cachedContent;
+                    if (jsonCache.TryGetValue(json, out var cachedContent))
+                    {
+                        requestMessage.Content = cachedContent;
+                    }
+                    else
+                    {
+                        var stringContent = new StringContent(json, encoding, "application/json");
+                        stringContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+                        jsonCache.TryAdd(json, stringContent);
+                    }
                 }
-                else
-                {
-                    var byteContent = new StringContent(json, encoding, "application/json");
-                    jsonCache.TryAdd(json, byteContent);
-                }
-                var request = await httpClient.SendAsync(requestMessage);
+                var res = await httpClient.SendAsync(requestMessage);
+                _logger.LogInformation($"Agones SendRequest ok: {api} {response}");
 
                 // result
-                var content = await request.Content.ReadAsByteArrayAsync();
+                var content = await res.Content.ReadAsByteArrayAsync();
                 if (content != null)
                 {
-                    response = Utf8Json.JsonSerializer.Deserialize<TResponse>(content);
+                    response = JsonSerializer.Deserialize<TResponse>(content);
                 }
-                _logger.LogInformation($"Agones SendRequest ok: {api} {response}");
-                var isOk = request.StatusCode == HttpStatusCode.OK;
+                var isOk = res.StatusCode == HttpStatusCode.OK;
                 return (isOk, response);
             }
             catch (Exception ex)
