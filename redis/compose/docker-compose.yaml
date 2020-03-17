@@ -1,0 +1,24 @@
+version: "3"
+
+networks:
+  redis:
+    driver: bridge
+
+services:
+  redis:
+    image: redis:5.0.7-alpine
+    ports:
+      - 6379:6379 # You may avoid conflict to default
+    command: redis-server --requirepass MY_AWESOME_PASSWORD
+    networks:
+      - redis
+
+  redisinsight:
+    image: redislabs/redisinsight:latest
+    ports:
+      - 8001:8001 # You may avoid conflict to default
+    volumes:
+      # don't use this if you don't want to persit data between docker up and down
+      - ./.redisinsight:/db
+    networks:
+      - redis
