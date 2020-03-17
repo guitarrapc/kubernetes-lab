@@ -18,7 +18,7 @@ kubectl apply -f ./k8s
 
 **NOTE**
 
-RedisInsight deploy to Kubernetes with Service needs attention.
+RedisInsight deploy to Kubernetes with Service needs additional attention with [official instruction](https://docs.redislabs.com/latest/ri/installing/install-k8s/).
 
 You must specify `spec.template.spec.containers[redisinsight].env` for REDISINSIGHT_HOST and REDISINSIGHT_PORT.
 
