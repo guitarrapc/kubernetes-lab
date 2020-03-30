@@ -1,0 +1,4 @@
+namespace: upm
+resources:
+  - configmap.yaml
+  - job.yaml

@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: htpasswd-job
+spec:
+  template:
+    metadata:
+      name: htpassed-job
+    spec:
+      restartPolicy: "Never"
+      containers:
+      - name: htpasswd
+        image: busybox
+        command: ["/bin/sh"]
+        args: ["-c", "cat /etc/htpasswd/htpasswd > /data/htpasswd"]
+        volumeMounts:
+        - name: persistent-storage
+          mountPath: /data
+        - name: config-volume
+          mountPath: /etc/htpasswd
+      volumes:
+        - name: persistent-storage
+          persistentVolumeClaim:
+            claimName: efs-claim
+        - name: config-volume
+          configMap:
+            name: htpasswd-config

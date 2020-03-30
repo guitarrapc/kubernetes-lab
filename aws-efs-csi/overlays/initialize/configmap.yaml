@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: htpasswd-config
+data:
+  # run `htpasswd -nb USERNAME PASSWORD` to generate user/pass
+  htpasswd: |-
+    admin:$apr1$rYb/xW8F$HVbw9acK7YBowI3DxzXqT.
