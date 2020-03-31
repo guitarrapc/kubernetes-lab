@@ -1,0 +1,5 @@
+namespace: gracefulshutdown
+bases:
+  - ../../base
+patches:
+  - deployment.yaml
