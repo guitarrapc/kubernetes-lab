@@ -12,7 +12,7 @@ nginx default doesn't treat TERM signal, so you will see existing connection wil
 kubectl kustomize ./3rdparty/overlays/noprehook | kubectl apply -f -
 ```
 
-
+you can inject your code when TERM is sent to pod with lifecycle.
 
 ```shell
 kubectl kustomize ./3rdparty/overlays/prehook | kubectl apply -f -
