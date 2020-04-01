@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  template:
+    spec:
+      containers:
+      - name: nginx
+        lifecycle:
+            preStop:
+              exec:
+                command: [
+                # Introduce a delay to the shutdown sequence to wait for the
+                # pod eviction event to propagate. Then, gracefully shutdown
+                # nginx.
+                  "sleep 5 && /usr/sbin/nginx", "-s", "quit"
+                ]

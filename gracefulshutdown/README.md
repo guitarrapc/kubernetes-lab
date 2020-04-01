@@ -17,3 +17,10 @@ you can inject your code when TERM is sent to pod with lifecycle.
 ```shell
 kubectl kustomize ./3rdparty/overlays/prehook | kubectl apply -f -
 ```
+
+however, but TERM signal may come before pod evicted & deresitered from subsystem.
+to guaranteed most case, let's wait seconds before starting graceful shutdown.
+
+```shell
+kubectl kustomize ./3rdparty/overlays/sleep_prehook | kubectl apply -f -
+```
