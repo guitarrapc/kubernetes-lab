@@ -24,3 +24,15 @@ to guaranteed most case, let's wait seconds before starting graceful shutdown.
 ```shell
 kubectl kustomize ./3rdparty/overlays/sleep_prehook | kubectl apply -f -
 ```
+
+to prevent all pod's evicted while draining node, use PodDisruptionBudget.
+
+```shell
+kubectl kustomize ./3rdparty/overlays/pdb_sleepprehook | kubectl apply -f -
+```
+
+if you want keep 100% of pods when evicted, then use `100%` for minAvailable.
+
+```shell
+kubectl kustomize ./3rdparty/overlays/pdb_sleepprehook_bluegreen | kubectl apply -f -
+```

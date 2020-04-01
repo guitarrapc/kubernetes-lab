@@ -1,0 +1,5 @@
+namespace: gracefulshutdown
+bases:
+  - ../pdb_sleepprehook
+patches:
+  - pdb.yaml
