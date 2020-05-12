@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pripod
+  labels:
+    app: pripod
+spec:
+  selector:
+    matchLabels:
+      app: pripod
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: pripod
+    spec:
+      serviceAccountName: pripod-serviceaccount
+      containers:
+        - name: pripod
+          image: guitarrapc/pripod.sample:0.1
+          command: ["sleep", "86400"]
