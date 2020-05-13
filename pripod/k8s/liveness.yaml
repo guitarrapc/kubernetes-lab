@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    test: liveness
+  name: liveness-http
+spec:
+  containers:
+    - name: liveness
+      image: k8s.gcr.io/liveness
+      args:
+        - /server
+      livenessProbe:
+        httpGet:
+          path: /healthz
+          port: 8080
+          httpHeaders:
+            - name: X-Custom-Header
+              value: Awesome
+        initialDelaySeconds: 3
+        periodSeconds: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: liveness-http
+  labels:
+    app: liveness-http
+spec:
+  selector:
+    matchLabels:
+      app: liveness-http
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: liveness-http
+    spec:
+      serviceAccountName: pripod-serviceaccount
+      containers:
+        - name: liveness
+          image: k8s.gcr.io/liveness
+          args:
+            - /server
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+              httpHeaders:
+                - name: X-Custom-Header
+                  value: Awesome
+            initialDelaySeconds: 3
+            periodSeconds: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: liveness-tcp
+  labels:
+    app: liveness-tcp
+spec:
+  selector:
+    matchLabels:
+      app: liveness-tcp
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: liveness-tcp
+    spec:
+      serviceAccountName: pripod-serviceaccount
+      containers:
+        - name: goproxy
+          image: k8s.gcr.io/goproxy:0.1
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
