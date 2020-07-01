@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-//using KubernetesClient;
+using KubernetesClient;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -28,7 +28,7 @@ namespace KubernetesApiSample
         {
             services.AddControllers();
 
-            //services.AddSingleton<KubernetsApi>();
+            services.AddSingleton<KubernetsApi>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
