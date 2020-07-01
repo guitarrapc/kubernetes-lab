@@ -13,26 +13,58 @@ namespace KubernetesClient
     {
         static void Main(string[] args)
         {
-            Host.CreateDefaultBuilder().RunConsoleAppFrameworkAsync<KubernetsApi>(args);
+            Host.CreateDefaultBuilder().RunConsoleAppFrameworkAsync<KubernetesApp>(args);
         }
     }
 
-    public class KubernetsApi : ConsoleAppBase
+    public class KubernetesApp : ConsoleAppBase
     {
-        private IKubernetesClient _provider;
-
-        public KubernetsApi()
+        private KubernetesApi api;
+        public KubernetesApp(KubernetesApi api)
         {
-            _provider = GetDefaultProvider();
+            this.api = new KubernetesApi();
         }
 
         public async ValueTask GetOpenApiSpec()
+        {
+            if (!api.IsRunningOnKubernetes)
+            {
+                Console.WriteLine("App not run on Kubernetes. Quit command.");
+                return;
+            }
+
+            var res = await api.GetOpenApiSpecAsync();
+            Console.WriteLine(res);
+        }
+    }
+
+    public class KubernetesApi
+    {
+        public bool IsRunningOnKubernetes { get; }
+        private IKubernetesClient _provider;
+
+        public KubernetesApi()
+        {
+            _provider = GetDefaultProvider();
+            IsRunningOnKubernetes = _provider.IsRunningOnKubernetes;
+        }
+
+        public async ValueTask<string> GetApiAsync(string apiPath)
+        {
+            using (var httpClient = _provider.CreateHttpClient())
+            {
+                var res = await httpClient.GetStringAsync(_provider.KubernetesServiceEndPoint + apiPath);
+                return res;
+            }
+        }
+
+        public async ValueTask<string> GetOpenApiSpecAsync()
         {
             using (var httpClient = _provider.CreateHttpClient())
             {
                 var apiPath = "/openapi/v2";
                 var res = await httpClient.GetStringAsync(_provider.KubernetesServiceEndPoint + apiPath);
-                Console.WriteLine(res);
+                return res;
             }
         }
 
