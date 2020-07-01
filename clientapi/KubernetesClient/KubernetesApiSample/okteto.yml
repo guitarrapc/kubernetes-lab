@@ -1,0 +1,11 @@
+name: kubernetesapisample
+image: okteto/hello-world:aspnetcore-dev
+environment:
+  - ASPNETCORE_ENVIRONMENT=Development
+command: ["dotnet", "watch", "run"]
+workdir: /src
+forward:
+  - 5000:5000
+persistentVolume:
+  enabled: true
+remote: 22000
