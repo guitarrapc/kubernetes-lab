@@ -13,7 +13,7 @@ namespace KubernetesClient
     {
         static void Main(string[] args)
         {
-            Host.CreateDefaultBuilder().RunConsoleAppFrameworkAsync<ConsoleAppBase>(args);
+            Host.CreateDefaultBuilder().RunConsoleAppFrameworkAsync<KubernetsApi>(args);
         }
     }
 

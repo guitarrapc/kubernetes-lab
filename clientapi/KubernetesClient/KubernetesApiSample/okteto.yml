@@ -1,5 +1,5 @@
 name: kubernetesapisample
-image: okteto/hello-world:aspnetcore-dev
+image: okteto/dotnetcore:3
 environment:
   - ASPNETCORE_ENVIRONMENT=Development
 command: ["dotnet", "watch", "run"]
