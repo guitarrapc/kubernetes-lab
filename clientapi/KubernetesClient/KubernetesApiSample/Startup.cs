@@ -28,7 +28,11 @@ namespace KubernetesApiSample
         {
             services.AddControllers();
 
-            services.AddSingleton<KubernetesApi>();
+            services.AddSingleton<KubernetesApi>(new KubernetesApi(new KubernetesApiConfig
+            { 
+                SkipCertificateValidation = true,
+                ResponseType = ResponseType.Yaml,
+            }));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
