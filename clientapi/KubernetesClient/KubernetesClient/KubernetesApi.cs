@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using KubernetesClient.Responses;
 
@@ -66,6 +68,19 @@ namespace KubernetesClient
                 SetAcceptHeader(httpClient);
                 var res = await httpClient.GetStringAsync(_provider.KubernetesServiceEndPoint + apiPath);
                 return res;
+            }
+        }
+
+        public async ValueTask<string> PostApiAsync(string apiPath, string body, string bodyContenType = "application/json",  CancellationToken ct = default)
+        {
+            using (var httpClient = _provider.CreateHttpClient())
+            {
+                SetAcceptHeader(httpClient);
+                var content = new StringContent(body, Encoding.UTF8, bodyContenType);
+                var res = await httpClient.PostAsync(_provider.KubernetesServiceEndPoint + apiPath, content, ct);
+                res.EnsureSuccessStatusCode();
+                var responseContent = await content.ReadAsStringAsync();
+                return responseContent;
             }
         }
 

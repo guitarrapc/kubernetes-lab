@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using KubernetesClient;
+using KubernetesClient.Requests;
 using KubernetesClient.Responses;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -23,7 +24,7 @@ namespace KubernetesApiSample.Controllers
             this.logger = logger;
         }
 
-        // curl localhost:5000/Kuberntes/status
+        // curl localhost:5000/kuberntes/status
         // response format: always json response.
         [HttpGet("status")]
         public KubernetesClientStatusResponse GetStatus()
@@ -33,7 +34,19 @@ namespace KubernetesApiSample.Controllers
             return res;
         }
 
-        // curl localhost:5000/Kuberntes/spec
+        // curl localhost:5000/kuberntes/configure_client?skipcertificatevalidate=true
+        // response format: always json response.
+        [HttpGet("configure_client")]
+        [HttpPost("configure_client")]
+        public KubernetesClientStatusResponse ConfigureClient(bool skipCertificateValidate = true)
+        {
+            logger.LogInformation("Configure status.");
+            kubeapi.ConfigureClient(skipCertificateValidate);
+            var res = kubeapi.GetStatusAsync();
+            return res;
+        }
+
+        // curl localhost:5000/kuberntes/spec
         // response format: always json response.
         [HttpGet("spec")]
         public async Task<string> GetSpec()
@@ -53,15 +66,15 @@ namespace KubernetesApiSample.Controllers
             return res;
         }
 
-        // curl localhost:5000/Kuberntes/configure_client?skipcertificatevalidate=true
-        // response format: always json response.
-        [HttpGet("configure_client")]
-        [HttpPost("configure_client")]
-        public KubernetesClientStatusResponse ConfigureClient(bool skipCertificateValidate = true)
+        // curl -X POST localhost:5000/kuberntes/deployments --data '{"namespace": "hoge", "name":"frontend", "body": @deployments.yaml}'
+        // curl -X POST -H "Content-Type: application/json" localhost:5000/kuberntes/deployments --data '{"namespace": "hoge", "name":"frontend"}'
+        // response format: depends on accept type
+        [HttpPost("deployment")]
+        public async Task<string> PostDeployment(KubernetesDeploymentCreateRequest request)
         {
-            logger.LogInformation("Configure status.");
-            kubeapi.ConfigureClient(skipCertificateValidate);
-            var res = kubeapi.GetStatusAsync();
+            logger.LogInformation("Post deployments api.");
+            var body = Utf8Json.JsonSerializer.ToJsonString<KubernetesDeploymentBody>(request.Body);
+            var res = await kubeapi.PostApiAsync($"/apis/apps/v1/namespaces/{request.NameSpace}/deployments/{request.Name}", body, "application/yaml");
             return res;
         }
     }
