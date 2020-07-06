@@ -38,6 +38,21 @@ namespace KubernetesClient
         }
     }
 
+    public class KubernetesClientStatus
+    {
+        public string AccessToken { get; set; }
+
+        public string HostName { get; set; }
+
+        public bool IsRunningOnKubernetes { get; set; }
+
+        public string KubernetesServiceEndPoint { get; set; }
+
+        public string Namespace { get; set; }
+
+        public bool SkipCertificationValidation { get; set; }
+    }
+    
     public class KubernetesApi
     {
         public bool IsRunningOnKubernetes { get; }
@@ -49,6 +64,25 @@ namespace KubernetesClient
             IsRunningOnKubernetes = _provider.IsRunningOnKubernetes;
         }
 
+        public KubernetesClientStatus GetStatusAsync()
+        {
+            var status = new KubernetesClientStatus
+            {
+                AccessToken = _provider.AccessToken,
+                HostName = _provider.HostName,
+                IsRunningOnKubernetes = _provider.IsRunningOnKubernetes,
+                KubernetesServiceEndPoint = _provider.KubernetesServiceEndPoint,
+                Namespace = _provider.Namespace,
+                SkipCertificationValidation = _provider.SkipCertificationValidation,
+            };
+            return status;
+        }
+
+        public void ConfigureClient(bool skipCertficateValidate)
+        {
+            _provider.SkipCertificationValidation = skipCertficateValidate;
+        }
+
         public async ValueTask<string> GetApiAsync(string apiPath)
         {
             using (var httpClient = _provider.CreateHttpClient())
@@ -58,6 +92,10 @@ namespace KubernetesClient
             }
         }
 
+        /// <summary>
+        /// OpenAPI Swagger Definition. https://kubernetes.io/ja/docs/concepts/overview/kubernetes-api/
+        /// </summary>
+        /// <returns></returns>
         public async ValueTask<string> GetOpenApiSpecAsync()
         {
             using (var httpClient = _provider.CreateHttpClient())

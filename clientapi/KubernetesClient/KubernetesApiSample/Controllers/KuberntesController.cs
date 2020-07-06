@@ -9,8 +9,8 @@ using Microsoft.Extensions.Logging;
 
 namespace KubernetesApiSample.Controllers
 {
-    [Route("[controller]")]
     [ApiController]
+    [Route("[controller]")]
     public class KuberntesController : ControllerBase
     {
         private ILogger<KuberntesController> logger;
@@ -22,11 +22,29 @@ namespace KubernetesApiSample.Controllers
             this.logger = logger;
         }
 
-        [HttpGet]
+        [HttpGet("status")]
+        public KubernetesClientStatus GetStatus()
+        {
+            logger.LogInformation("Get status.");
+            var res = kubeapi.GetStatusAsync();
+            return res;
+        }
+
+        [HttpGet("api")]
         public async Task<string> Get()
         {
-            logger.LogInformation("Get request.");
+            logger.LogInformation("Get api.");
             var res = await kubeapi.GetOpenApiSpecAsync();
+            return res;
+        }
+
+        [HttpGet("configure_client")]
+        [HttpPost("configure_client")]
+        public KubernetesClientStatus ConfigureClient(bool skipCertificateValidate = false)
+        {
+            logger.LogInformation("Configure status.");
+            kubeapi.ConfigureClient(skipCertificateValidate);
+            var res = kubeapi.GetStatusAsync();
             return res;
         }
     }
