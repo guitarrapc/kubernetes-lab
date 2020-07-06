@@ -21,7 +21,6 @@ namespace KubernetesClient
         string KubernetesServiceEndPoint { get; }
         string Namespace { get; }
         bool SkipCertificationValidation { get; set; }
-        ResponseType ResponseType { get; set; }
 
         HttpClient CreateHttpClient();
     }
@@ -59,7 +58,6 @@ namespace KubernetesClient
         public abstract bool IsRunningOnKubernetes { get; }
 
         public bool SkipCertificationValidation { get; set; }
-        public ResponseType ResponseType { get; set; }
 
         public HttpClient CreateHttpClient()
         {
@@ -67,7 +65,6 @@ namespace KubernetesClient
             var httpClient = new HttpClient(httpClientHandler);
 
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AccessToken);
-            SetAcceptHeader(httpClient);
 
             if (SkipCertificationValidation)
             {
@@ -75,24 +72,6 @@ namespace KubernetesClient
             }
 
             return httpClient;
-        }
-
-        private void SetAcceptHeader(HttpClient httpClient)
-        {
-            switch (ResponseType)
-            {
-                case ResponseType.Json:
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                    break;
-                case ResponseType.Yaml:
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/yaml"));
-                    break;
-                case ResponseType.Protobuf:
-                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.kubernetes.protobuf"));
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(ResponseType));
-            }
         }
     }
 }

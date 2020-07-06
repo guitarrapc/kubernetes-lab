@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using KubernetesClient.Responses;
 
@@ -25,7 +27,6 @@ namespace KubernetesClient
         {
             _provider = GetDefaultProvider();
             _provider.SkipCertificationValidation = _config.SkipCertificateValidation;
-            _provider.ResponseType = _config.ResponseType;
             IsRunningOnKubernetes = _provider.IsRunningOnKubernetes;
         }
 
@@ -34,7 +35,6 @@ namespace KubernetesClient
             _config = config;
             _provider = GetDefaultProvider();
             _provider.SkipCertificationValidation = _config.SkipCertificateValidation;
-            _provider.ResponseType = _config.ResponseType;
 
             IsRunningOnKubernetes = _provider.IsRunningOnKubernetes;
         }
@@ -62,6 +62,7 @@ namespace KubernetesClient
         {
             using (var httpClient = _provider.CreateHttpClient())
             {
+                SetAcceptHeader(httpClient);
                 var res = await httpClient.GetStringAsync(_provider.KubernetesServiceEndPoint + apiPath);
                 return res;
             }
@@ -75,6 +76,7 @@ namespace KubernetesClient
         {
             using (var httpClient = _provider.CreateHttpClient())
             {
+                // must be json. do not set ResponseType
                 var apiPath = "/openapi/v2";
                 var res = await httpClient.GetStringAsync(_provider.KubernetesServiceEndPoint + apiPath);
                 return res;
@@ -87,5 +89,24 @@ namespace KubernetesClient
                 throw new NotImplementedException($"{Environment.OSVersion.Platform} is not supported.");
             return (IKubernetesClient)new UnixKubernetesClient();
         }
+
+        private void SetAcceptHeader(HttpClient httpClient)
+        {
+            switch (_config.ResponseType)
+            {
+                case ResponseType.Json:
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    break;
+                case ResponseType.Yaml:
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/yaml"));
+                    break;
+                case ResponseType.Protobuf:
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.kubernetes.protobuf"));
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(ResponseType));
+            }
+        }
+
     }
 }
