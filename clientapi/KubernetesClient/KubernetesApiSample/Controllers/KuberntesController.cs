@@ -21,11 +21,10 @@ namespace KubernetesApiSample.Controllers
         {
             this.kubeapi = kubeapi;
             this.logger = logger;
-            // skip certificate validation by default
-            this.kubeapi.ConfigureClient(true);
         }
 
         // curl localhost:5000/Kuberntes/status
+        // response format: always json response.
         [HttpGet("status")]
         public KubernetesClientStatusResponse GetStatus()
         {
@@ -35,6 +34,7 @@ namespace KubernetesApiSample.Controllers
         }
 
         // curl localhost:5000/Kuberntes/spec
+        // response format: always json response.
         [HttpGet("spec")]
         public async Task<string> GetSpec()
         {
@@ -44,6 +44,7 @@ namespace KubernetesApiSample.Controllers
         }
 
         // curl localhost:5000/Kuberntes/deployments
+        // response format: depends on accept type
         [HttpGet("deployments")]
         public async Task<string> GetDeployments()
         {
@@ -53,6 +54,7 @@ namespace KubernetesApiSample.Controllers
         }
 
         // curl localhost:5000/Kuberntes/configure_client?skipcertificatevalidate=true
+        // response format: always json response.
         [HttpGet("configure_client")]
         [HttpPost("configure_client")]
         public KubernetesClientStatusResponse ConfigureClient(bool skipCertificateValidate = true)

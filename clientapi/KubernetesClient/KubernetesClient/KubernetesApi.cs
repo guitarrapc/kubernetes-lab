@@ -26,19 +26,19 @@ namespace KubernetesClient
         public KubernetesApi()
         {
             _provider = GetDefaultProvider();
-            _provider.SkipCertificationValidation = _config.SkipCertificateValidation;
+            SetProviderConfig();
             IsRunningOnKubernetes = _provider.IsRunningOnKubernetes;
         }
-
         public KubernetesApi(KubernetesApiConfig config)
         {
             _config = config;
             _provider = GetDefaultProvider();
-            _provider.SkipCertificationValidation = _config.SkipCertificateValidation;
+            SetProviderConfig();
 
             IsRunningOnKubernetes = _provider.IsRunningOnKubernetes;
         }
 
+        #region API
         public KubernetesClientStatusResponse GetStatusAsync()
         {
             var status = new KubernetesClientStatusResponse
@@ -55,7 +55,8 @@ namespace KubernetesClient
 
         public void ConfigureClient(bool skipCertficateValidate)
         {
-            _provider.SkipCertificationValidation = skipCertficateValidate;
+            _config.SkipCertificateValidation = skipCertficateValidate;
+            SetProviderConfig();
         }
 
         public async ValueTask<string> GetApiAsync(string apiPath)
@@ -82,12 +83,17 @@ namespace KubernetesClient
                 return res;
             }
         }
+        #endregion
 
         private static IKubernetesClient GetDefaultProvider()
         {
             if (Environment.OSVersion.Platform != PlatformID.Unix)
                 throw new NotImplementedException($"{Environment.OSVersion.Platform} is not supported.");
             return (IKubernetesClient)new UnixKubernetesClient();
+        }
+        private void SetProviderConfig()
+        {
+            _provider.SkipCertificationValidation = _config.SkipCertificateValidation;
         }
 
         private void SetAcceptHeader(HttpClient httpClient)
