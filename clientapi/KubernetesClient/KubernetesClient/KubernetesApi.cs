@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Buffers;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using KubernetesClient.Responses;
+using LitJWT;
 
 namespace KubernetesClient
 {
@@ -41,7 +43,7 @@ namespace KubernetesClient
         }
 
         #region API
-        public KubernetesClientStatusResponse GetStatusAsync()
+        public KubernetesClientStatusResponse GetStatus()
         {
             var status = new KubernetesClientStatusResponse
             {
@@ -61,17 +63,46 @@ namespace KubernetesClient
             SetProviderConfig();
         }
 
-        public async ValueTask<string> GetApiAsync(string apiPath)
+        public async ValueTask<string> GetApiAsync(string apiPath, string acceptHeader = default)
         {
             using (var httpClient = _provider.CreateHttpClient())
             {
-                SetAcceptHeader(httpClient);
+                SetAcceptHeader(httpClient, acceptHeader);
                 var res = await httpClient.GetStringAsync(_provider.KubernetesServiceEndPoint + apiPath);
                 return res;
             }
         }
 
-        public async ValueTask<string> PostApiAsync(string apiPath, string body, string bodyContenType = "application/json",  CancellationToken ct = default)
+        /// <summary>
+        /// Replace resource
+        /// </summary>
+        /// <param name="apiPath"></param>
+        /// <param name="body"></param>
+        /// <param name="bodyContenType"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async ValueTask<string> PutApiAsync(string apiPath, string body, string bodyContenType = "application/yaml", CancellationToken ct = default)
+        {
+            using (var httpClient = _provider.CreateHttpClient())
+            {
+                SetAcceptHeader(httpClient);
+                var content = new StringContent(body, Encoding.UTF8, bodyContenType);
+                var res = await httpClient.PutAsync(_provider.KubernetesServiceEndPoint + apiPath, content, ct);
+                res.EnsureSuccessStatusCode();
+                var responseContent = await content.ReadAsStringAsync();
+                return responseContent;
+            }
+        }
+
+        /// <summary>
+        /// Create Resource
+        /// </summary>
+        /// <param name="apiPath"></param>
+        /// <param name="body"></param>
+        /// <param name="bodyContenType"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async ValueTask<string> PostApiAsync(string apiPath, string body, string bodyContenType = "application/yaml",  CancellationToken ct = default)
         {
             using (var httpClient = _provider.CreateHttpClient())
             {
@@ -100,17 +131,47 @@ namespace KubernetesClient
         }
         #endregion
 
+        public static string Base64ToString(string base64)
+        {
+            var rentBytes = ArrayPool<byte>.Shared.Rent(Base64.GetMaxBase64UrlDecodeLength(base64.Length));
+            try
+            {
+                Span<byte> bytes = rentBytes.AsSpan();
+                if (!Base64.TryFromBase64String(base64, bytes, out var bytesWritten))
+                {
+                    throw new ArgumentException($"Invalid Base64 string detected.");
+                }
+                bytes = bytes.Slice(0, bytesWritten);
+                return UTF8Encoding.UTF8.GetString(bytes);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(rentBytes);
+            }
+        }
+
         private static IKubernetesClient GetDefaultProvider()
         {
-            if (Environment.OSVersion.Platform != PlatformID.Unix)
-                throw new NotImplementedException($"{Environment.OSVersion.Platform} is not supported.");
-            return (IKubernetesClient)new UnixKubernetesClient();
+            return Environment.OSVersion.Platform == PlatformID.Unix
+                ? (IKubernetesClient)new UnixKubernetesClient()
+                : (IKubernetesClient)new WindowsKubernetesClient();
         }
         private void SetProviderConfig()
         {
             _provider.SkipCertificationValidation = _config.SkipCertificateValidation;
         }
 
+        private void SetAcceptHeader(HttpClient httpClient, string acceptHeader)
+        {
+            if (string.IsNullOrEmpty(acceptHeader))
+            {
+                SetAcceptHeader(httpClient);
+            }
+            else
+            {
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(acceptHeader));
+            }
+        }
         private void SetAcceptHeader(HttpClient httpClient)
         {
             switch (_config.ResponseType)
@@ -128,6 +189,5 @@ namespace KubernetesClient
                     throw new ArgumentOutOfRangeException(nameof(ResponseType));
             }
         }
-
     }
 }
