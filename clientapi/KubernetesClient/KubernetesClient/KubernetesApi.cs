@@ -63,6 +63,12 @@ namespace KubernetesClient
             SetProviderConfig();
         }
 
+        /// <summary>
+        /// Get resource
+        /// </summary>
+        /// <param name="apiPath"></param>
+        /// <param name="acceptHeader"></param>
+        /// <returns></returns>
         public async ValueTask<string> GetApiAsync(string apiPath, string acceptHeader = default)
         {
             using (var httpClient = _provider.CreateHttpClient())
@@ -70,27 +76,6 @@ namespace KubernetesClient
                 SetAcceptHeader(httpClient, acceptHeader);
                 var res = await httpClient.GetStringAsync(_provider.KubernetesServiceEndPoint + apiPath);
                 return res;
-            }
-        }
-
-        /// <summary>
-        /// Replace resource
-        /// </summary>
-        /// <param name="apiPath"></param>
-        /// <param name="body"></param>
-        /// <param name="bodyContenType"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        public async ValueTask<string> PutApiAsync(string apiPath, string body, string bodyContenType = "application/yaml", CancellationToken ct = default)
-        {
-            using (var httpClient = _provider.CreateHttpClient())
-            {
-                SetAcceptHeader(httpClient);
-                var content = new StringContent(body, Encoding.UTF8, bodyContenType);
-                var res = await httpClient.PutAsync(_provider.KubernetesServiceEndPoint + apiPath, content, ct);
-                res.EnsureSuccessStatusCode();
-                var responseContent = await content.ReadAsStringAsync();
-                return responseContent;
             }
         }
 
@@ -110,10 +95,50 @@ namespace KubernetesClient
                 var content = new StringContent(body, Encoding.UTF8, bodyContenType);
                 var res = await httpClient.PostAsync(_provider.KubernetesServiceEndPoint + apiPath, content, ct);
                 res.EnsureSuccessStatusCode();
-                var responseContent = await content.ReadAsStringAsync();
+                var responseContent = await res.Content.ReadAsStringAsync();
                 return responseContent;
             }
         }
+
+        /// <summary>
+        /// Replace resource
+        /// </summary>
+        /// <param name="apiPath"></param>
+        /// <param name="body"></param>
+        /// <param name="bodyContenType"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async ValueTask<string> PutApiAsync(string apiPath, string body, string bodyContenType = "application/yaml", CancellationToken ct = default)
+        {
+            using (var httpClient = _provider.CreateHttpClient())
+            {
+                SetAcceptHeader(httpClient);
+                var content = new StringContent(body, Encoding.UTF8, bodyContenType);
+                var res = await httpClient.PutAsync(_provider.KubernetesServiceEndPoint + apiPath, content, ct);
+                res.EnsureSuccessStatusCode();
+                var responseContent = await res.Content.ReadAsStringAsync();
+                return responseContent;
+            }
+        }
+
+        /// <summary>
+        /// Delete resource
+        /// </summary>
+        /// <param name="apiPath"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async ValueTask<string> DeleteApiAsync(string apiPath, CancellationToken ct = default)
+        {
+            using (var httpClient = _provider.CreateHttpClient())
+            {
+                SetAcceptHeader(httpClient);
+                var res = await httpClient.DeleteAsync(_provider.KubernetesServiceEndPoint + apiPath, ct);
+                res.EnsureSuccessStatusCode();
+                var responseContent = await res.Content.ReadAsStringAsync();
+                return responseContent;
+            }
+        }
+
 
         /// <summary>
         /// OpenAPI Swagger Definition. https://kubernetes.io/ja/docs/concepts/overview/kubernetes-api/

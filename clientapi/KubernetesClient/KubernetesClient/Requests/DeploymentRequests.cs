@@ -8,7 +8,7 @@ using KubernetesClient.Converters;
 
 namespace KubernetesClient.Requests
 {
-    public class KubernetesDeploymentCreateRequest
+    public class KubernetesDeploymentCreateOrUpdateRequest
     {
         [Required]
         public string NameSpace { get; set; } = "default";
@@ -20,6 +20,13 @@ namespace KubernetesClient.Requests
         public string BodyContentType { get; set; } = "application/yaml";
     }
 
+    public class KubernetesDeploymentDeleteRequest
+    {
+        [Required]
+        public string NameSpace { get; set; } = "default";
+        [Required]
+        public string Name { get; set; }
+    }
     public class KubernetesDeploymentMetadata
     {
         public string apiVersion { get; set; }
