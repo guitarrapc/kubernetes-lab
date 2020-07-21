@@ -81,17 +81,22 @@ namespace KubernetesClient
 
         public HttpClient CreateHttpClient()
         {
-            var httpClientHandler = new HttpClientHandler();
-            var httpClient = new HttpClient(httpClientHandler);
-
+            var handler = new WatcherDelegatingHandler();
+            handler.InnerHandler = CreateDefaultHttpClientHandler();
+            var httpClient = new HttpClient(handler);
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AccessToken);
 
+            return httpClient;
+        }
+
+        public HttpClientHandler CreateDefaultHttpClientHandler()
+        {
+            var httpClientHandler = new HttpClientHandler();
             if (SkipCertificationValidation)
             {
                 httpClientHandler.ServerCertificateCustomValidationCallback = /* HttpClientHandler.DangerousAcceptAnyServerCertificateValidator; */ delegate { return true; };
             }
-
-            return httpClient;
+            return httpClientHandler;
         }
     }
 }

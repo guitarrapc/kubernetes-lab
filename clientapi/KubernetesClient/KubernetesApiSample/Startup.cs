@@ -27,6 +27,7 @@ namespace KubernetesApiSample
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddRouting(options => options.LowercaseUrls = true);
 
             services.AddSingleton<KubernetesApi>(new KubernetesApi(new KubernetesApiConfig
             { 

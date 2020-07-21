@@ -63,6 +63,12 @@ namespace KubernetesClient
             SetProviderConfig();
         }
 
+        public void ConfigureResponse(bool isJson)
+        {
+            _config.ResponseType = isJson ? ResponseType.Json : ResponseType.Yaml;
+            SetProviderConfig();
+        }
+
         /// <summary>
         /// Get resource
         /// </summary>
