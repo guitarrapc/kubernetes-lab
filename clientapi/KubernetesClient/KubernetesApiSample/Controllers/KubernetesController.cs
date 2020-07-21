@@ -91,7 +91,8 @@ namespace KubernetesApiSample.Controllers
                     resourceVersion = deployments.metadata.resourceVersion;
                 }
                 logger.LogInformation($"Watch deployment api. resourceVersion {resourceVersion}");
-                var watchRes = await kubeapi.GetApiAsync($"/apis/apps/v1/namespaces/{@namespace}/deployments?watch=1&resourceVersion={resourceVersion}", "application/json");
+                //var watchRes = await kubeapi.GetApiAsync($"/apis/apps/v1/namespaces/{@namespace}/deployments?watch=1&resourceVersion={resourceVersion}", "application/json");
+                var watchRes = await kubeapi.GetStreamApiAsync($"/apis/apps/v1/namespaces/{@namespace}/deployments?watch=1&resourceVersion={resourceVersion}", "application/json");
                 return watchRes;
             }
             else

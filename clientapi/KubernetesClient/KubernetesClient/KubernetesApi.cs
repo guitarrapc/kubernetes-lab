@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using KubernetesClient.Responses;
 using LitJWT;
+using static KubernetesClient.WatcherDelegatingHandler;
 
 namespace KubernetesClient
 {
@@ -80,8 +81,27 @@ namespace KubernetesClient
             using (var httpClient = _provider.CreateHttpClient())
             {
                 SetAcceptHeader(httpClient, acceptHeader);
-                var res = await httpClient.GetStringAsync(_provider.KubernetesServiceEndPoint + apiPath);
+                var res = await httpClient.GetStringAsync(_provider.KubernetesServiceEndPoint + apiPath).ConfigureAwait(false);
                 return res;
+            }
+        }
+
+        /// <summary>
+        /// Get resource
+        /// </summary>
+        /// <param name="apiPath"></param>
+        /// <param name="acceptHeader"></param>
+        /// <returns></returns>
+        public async ValueTask<string> GetStreamApiAsync(string apiPath, string acceptHeader = default, CancellationToken ct = default)
+        {
+            using (var httpClient = _provider.CreateHttpClient())
+            {
+                SetAcceptHeader(httpClient, acceptHeader);
+                var request = new HttpRequestMessage(HttpMethod.Get, _provider.KubernetesServiceEndPoint + apiPath);
+                var res = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+                var stream = await res.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                var reader = new PeekableStreamReader(new CancelableStream(stream, ct));
+                return await reader.ReadLineAsync().ConfigureAwait(false);
             }
         }
 
@@ -99,7 +119,7 @@ namespace KubernetesClient
             {
                 SetAcceptHeader(httpClient);
                 var content = new StringContent(body, Encoding.UTF8, bodyContenType);
-                var res = await httpClient.PostAsync(_provider.KubernetesServiceEndPoint + apiPath, content, ct);
+                var res = await httpClient.PostAsync(_provider.KubernetesServiceEndPoint + apiPath, content, ct).ConfigureAwait(false);
                 res.EnsureSuccessStatusCode();
                 var responseContent = await res.Content.ReadAsStringAsync();
                 return responseContent;
@@ -120,7 +140,7 @@ namespace KubernetesClient
             {
                 SetAcceptHeader(httpClient);
                 var content = new StringContent(body, Encoding.UTF8, bodyContenType);
-                var res = await httpClient.PutAsync(_provider.KubernetesServiceEndPoint + apiPath, content, ct);
+                var res = await httpClient.PutAsync(_provider.KubernetesServiceEndPoint + apiPath, content, ct).ConfigureAwait(false);
                 res.EnsureSuccessStatusCode();
                 var responseContent = await res.Content.ReadAsStringAsync();
                 return responseContent;
@@ -138,7 +158,7 @@ namespace KubernetesClient
             using (var httpClient = _provider.CreateHttpClient())
             {
                 SetAcceptHeader(httpClient);
-                var res = await httpClient.DeleteAsync(_provider.KubernetesServiceEndPoint + apiPath, ct);
+                var res = await httpClient.DeleteAsync(_provider.KubernetesServiceEndPoint + apiPath, ct).ConfigureAwait(false);
                 res.EnsureSuccessStatusCode();
                 var responseContent = await res.Content.ReadAsStringAsync();
                 return responseContent;
@@ -156,7 +176,7 @@ namespace KubernetesClient
             {
                 // must be json. do not set ResponseType
                 var apiPath = "/openapi/v2";
-                var res = await httpClient.GetStringAsync(_provider.KubernetesServiceEndPoint + apiPath);
+                var res = await httpClient.GetStringAsync(_provider.KubernetesServiceEndPoint + apiPath).ConfigureAwait(false);
                 return res;
             }
         }
