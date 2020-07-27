@@ -12,7 +12,7 @@ namespace KubernetesApiSample.Models
 {
     public class KubernetesModel
     {
-        public async ValueTask<string> CreateOrReplaceDeploymentAsync(KubernetesApi kubeapi, KubernetesDeploymentCreateOrUpdateRequest request)
+        public async ValueTask<string> CreateOrReplaceDeploymentAsync(KubernetesApi kubeapi, KubernetesCreateOrUpdateRequest request)
         {
             var deploymentsJson = await kubeapi.GetApiAsync($"/apis/apps/v1/namespaces/{request.NameSpace}/deployments", "application/json");
             var deployments = JsonSerializer.Deserialize<V1DeploymentList>(deploymentsJson);
@@ -20,7 +20,7 @@ namespace KubernetesApiSample.Models
             // decode body base64
             var decodedBody = KubernetesApi.Base64ToString(request.Body);
             var yamlDeserializer = new DeserializerBuilder().Build();
-            var deploymentRequest = yamlDeserializer.Deserialize<V1DeploymentMetadataOnly>(decodedBody);
+            var deploymentRequest = yamlDeserializer.Deserialize<V1MetadataOnly>(decodedBody);
 
             if (deployments.items.Any(x => x.metadata.name == deploymentRequest.metadata.name))
             {
@@ -32,6 +32,30 @@ namespace KubernetesApiSample.Models
             {
                 // create
                 var res = await kubeapi.PostApiAsync($"/apis/apps/v1/namespaces/{request.NameSpace}/deployments", decodedBody, request.BodyContentType);
+                return res;
+            }
+        }
+
+        public async ValueTask<string> CreateOrReplaceJobAsync(KubernetesApi kubeapi, KubernetesCreateOrUpdateRequest request)
+        {
+            var deploymentsJson = await kubeapi.GetApiAsync($"/apis/batch/v1/namespaces/{request.NameSpace}/jobs", "application/json");
+            var deployments = JsonSerializer.Deserialize<V1JobList>(deploymentsJson);
+
+            // decode body base64
+            var decodedBody = KubernetesApi.Base64ToString(request.Body);
+            var yamlDeserializer = new DeserializerBuilder().Build();
+            var deploymentRequest = yamlDeserializer.Deserialize<V1MetadataOnly>(decodedBody);
+
+            if (deployments.items.Any(x => x.metadata.name == deploymentRequest.metadata.name))
+            {
+                // replace
+                var res = await kubeapi.PutApiAsync($"/apis/batch/v1/namespaces/{request.NameSpace}/jobs/{deploymentRequest.metadata.name}", decodedBody, request.BodyContentType);
+                return res;
+            }
+            else
+            {
+                // create
+                var res = await kubeapi.PostApiAsync($"/apis/batch/v1/namespaces/{request.NameSpace}/jobs", decodedBody, request.BodyContentType);
                 return res;
             }
         }

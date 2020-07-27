@@ -5,7 +5,7 @@ using KubernetesClient.Models;
 
 namespace KubernetesClient.Requests
 {
-    public class KubernetesDeploymentCreateOrUpdateRequest
+    public class KubernetesCreateOrUpdateRequest
     {
         [Required]
         public string NameSpace { get; set; } = "default";
@@ -17,14 +17,15 @@ namespace KubernetesClient.Requests
         public string BodyContentType { get; set; } = "application/yaml";
     }
 
-    public class KubernetesDeploymentDeleteRequest
+    public class KubernetesDeleteRequest
     {
         [Required]
         public string NameSpace { get; set; } = "default";
         [Required]
         public string Name { get; set; }
+        public int GraceperiodSecond { get; set; }
     }
-    public class V1DeploymentMetadataOnly
+    public class V1MetadataOnly
     {
         public string apiVersion { get; set; }
         public string kind { get; set; }

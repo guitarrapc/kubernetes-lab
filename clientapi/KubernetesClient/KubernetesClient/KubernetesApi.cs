@@ -3,8 +3,10 @@ using System.Buffers;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using KubernetesClient.Models;
 using KubernetesClient.Responses;
 using LitJWT;
 using static KubernetesClient.WatcherDelegatingHandler;
@@ -157,14 +159,36 @@ namespace KubernetesClient
         {
             using (var httpClient = _provider.CreateHttpClient())
             {
-                SetAcceptHeader(httpClient);
-                var res = await httpClient.DeleteAsync(_provider.KubernetesServiceEndPoint + apiPath, ct).ConfigureAwait(false);
+                SetAcceptHeader(httpClient, "application/json");
+                var res = await httpClient.DeleteAsync(_provider.KubernetesServiceEndPoint + apiPath, ct);
                 res.EnsureSuccessStatusCode();
                 var responseContent = await res.Content.ReadAsStringAsync();
                 return responseContent;
             }
         }
-
+        /// <summary>
+        /// Delete resource
+        /// </summary>
+        /// <param name="apiPath"></param>
+        /// <param name="options"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public async ValueTask<string> DeleteApiAsync(string apiPath, V1DeleteOptions options, CancellationToken ct = default)
+        {
+            using (var httpClient = _provider.CreateHttpClient())
+            {
+                SetAcceptHeader(httpClient, "application/json");
+                var content = new StringContent(JsonSerializer.Serialize(options), Encoding.UTF8, "application/json");
+                var request = new HttpRequestMessage(HttpMethod.Delete, _provider.KubernetesServiceEndPoint + apiPath)
+                {
+                    Content = content,
+                };
+                var res = await httpClient.SendAsync(request, ct);
+                res.EnsureSuccessStatusCode();
+                var responseContent = await res.Content.ReadAsStringAsync();
+                return responseContent;
+            }
+        }
 
         /// <summary>
         /// OpenAPI Swagger Definition. https://kubernetes.io/ja/docs/concepts/overview/kubernetes-api/

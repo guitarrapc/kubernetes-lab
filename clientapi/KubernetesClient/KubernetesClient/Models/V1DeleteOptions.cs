@@ -10,5 +10,6 @@ namespace KubernetesClient.Models
         public string kind { get; set; }
         public bool? orphanDependents { get; set; }
         public V1Preconditions preconditions { get; set; }
+        public string propagationPolicy { get; set; }
     }
 }
