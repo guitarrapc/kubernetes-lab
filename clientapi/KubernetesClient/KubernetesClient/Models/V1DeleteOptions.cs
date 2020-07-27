@@ -1,0 +1,14 @@
+﻿using System.Collections.Generic;
+
+namespace KubernetesClient.Models
+{
+    public class V1DeleteOptions
+    {
+        public string apiVersion { get; set; }
+        public IList<string> dryRun { get; set; }
+        public long? gracePeriodSeconds { get; set; }
+        public string kind { get; set; }
+        public bool? orphanDependents { get; set; }
+        public V1Preconditions preconditions { get; set; }
+    }
+}
