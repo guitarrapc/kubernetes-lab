@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using KubernetesClient;
+using KubernetesClient.Models;
 using KubernetesClient.Requests;
 using YamlDotNet.Serialization;
 
@@ -14,12 +15,12 @@ namespace KubernetesApiSample.Models
         public async ValueTask<string> CreateOrReplaceDeploymentAsync(KubernetesApi kubeapi, KubernetesDeploymentCreateOrUpdateRequest request)
         {
             var deploymentsJson = await kubeapi.GetApiAsync($"/apis/apps/v1/namespaces/{request.NameSpace}/deployments", "application/json");
-            var deployments = JsonSerializer.Deserialize<KubernetesDeployments>(deploymentsJson);
+            var deployments = JsonSerializer.Deserialize<V1DeploymentList>(deploymentsJson);
 
             // decode body base64
             var decodedBody = KubernetesApi.Base64ToString(request.Body);
             var yamlDeserializer = new DeserializerBuilder().Build();
-            var deploymentRequest = yamlDeserializer.Deserialize<KubernetesDeploymentMetadata>(decodedBody);
+            var deploymentRequest = yamlDeserializer.Deserialize<V1DeploymentMetadataOnly>(decodedBody);
 
             if (deployments.items.Any(x => x.metadata.name == deploymentRequest.metadata.name))
             {

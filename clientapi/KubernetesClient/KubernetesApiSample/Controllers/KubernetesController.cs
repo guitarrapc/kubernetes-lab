@@ -1,7 +1,9 @@
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using KubernetesApiSample.Models;
 using KubernetesClient;
+using KubernetesClient.Models;
 using KubernetesClient.Requests;
 using KubernetesClient.Responses;
 using Microsoft.AspNetCore.Mvc;
@@ -69,29 +71,52 @@ namespace KubernetesApiSample.Controllers
         // curl localhost:5000/kubernetes/deployments
         // response format: depends on accept type
         [HttpGet("deployments")]
-        public async Task<string> GetDeployments()
+        public async Task<string[]> GetDeployments()
         {
             logger.LogInformation("Get deployments api.");
+            var res = await kubeapi.GetApiAsync("/apis/apps/v1/deployments", "application/json");
+            var deployments = JsonSerializer.Deserialize<V1DeploymentList>(res);
+            return deployments.items
+                .Select(item => $"{item.metadata.@namespace}/{item.metadata.name}")
+                .ToArray();
+        }
+
+        // curl localhost:5000/kubernetes/deployments/manifest
+        // response format: depends on accept type
+        [HttpGet("deployments/manifest")]
+        public async Task<string> GetDeploymentsManifest()
+        {
+            logger.LogInformation("Get deployments manifest api.");
             var res = await kubeapi.GetApiAsync("/apis/apps/v1/deployments");
             return res;
         }
 
         // curl "localhost:5000/kubernetes/deployment?namespace=default&name=kubernetesapisample"
-        // curl "localhost:5000/kubernetes/deployment?namespace=default&name=kubernetesapisample&watch=true"
         // response format: depends on accept type
         [HttpGet("deployment")]
-        public async Task<string> GetDeployment(string @namespace, string name, bool watch = false, string resourceVersion = "")
+        public async Task<V1Deployment> GetDeployment(string @namespace, string name)
+        {
+            logger.LogInformation("Get deployment api.");
+            var res = await kubeapi.GetApiAsync($"/apis/apps/v1/namespaces/{@namespace}/deployments/{name}", "application/json");
+            var deployment = JsonSerializer.Deserialize<V1Deployment>(res);
+            return deployment;
+        }
+
+        // curl "localhost:5000/kubernetes/deployment/manifest?namespace=default&name=kubernetesapisample"
+        // curl "localhost:5000/kubernetes/deployment/manifest?namespace=default&name=kubernetesapisample&watch=true"
+        // response format: depends on accept type
+        [HttpGet("deployment/manifest")]
+        public async Task<string> GetDeploymentManifest(string @namespace, string name, bool watch = false, string resourceVersion = "")
         {
             if (watch)
             {
                 if (string.IsNullOrEmpty(resourceVersion))
                 {
                     var res = await kubeapi.GetApiAsync($"/apis/apps/v1/namespaces/{@namespace}/deployments", "application/json");
-                    var deployments = JsonSerializer.Deserialize<KubernetesDeploymentMetadata>(res);
+                    var deployments = JsonSerializer.Deserialize<V1DeploymentMetadataOnly>(res);
                     resourceVersion = deployments.metadata.resourceVersion;
                 }
                 logger.LogInformation($"Watch deployment api. resourceVersion {resourceVersion}");
-                //var watchRes = await kubeapi.GetApiAsync($"/apis/apps/v1/namespaces/{@namespace}/deployments?watch=1&resourceVersion={resourceVersion}", "application/json");
                 var watchRes = await kubeapi.GetStreamApiAsync($"/apis/apps/v1/namespaces/{@namespace}/deployments?watch=1&resourceVersion={resourceVersion}", "application/json");
                 return watchRes;
             }

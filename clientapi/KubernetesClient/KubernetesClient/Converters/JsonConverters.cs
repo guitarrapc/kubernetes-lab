@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using KubernetesClient.Models;
 
 namespace KubernetesClient.Converters
 {
     /// <summary>
     /// Force handle JSON number as string type.
     /// </summary>
-    public class StringConverter : JsonConverter<string>
+    public class IntOrStringConverter : JsonConverter<string>
     {
         public override string Read(ref Utf8JsonReader reader, Type type, JsonSerializerOptions options)
         {
@@ -33,6 +34,25 @@ namespace KubernetesClient.Converters
         public override void Write(Utf8JsonWriter writer, string value, JsonSerializerOptions options)
         {
             writer.WriteStringValue(value.ToString());
+        }
+    }
+
+    public class ResourceQuantityConverter : JsonConverter<ResourceQuantity>
+    {
+        public override ResourceQuantity Read(ref Utf8JsonReader reader, Type type, JsonSerializerOptions options)
+        {
+            return new ResourceQuantity()
+            {
+                value = reader.GetString(),
+            };
+        }
+
+        public override void Write(Utf8JsonWriter writer, ResourceQuantity value, JsonSerializerOptions options)
+        {
+            if (!string.IsNullOrEmpty(value.value))
+            {
+                writer.WriteStringValue(value.value.ToString());
+            }
         }
     }
 }
