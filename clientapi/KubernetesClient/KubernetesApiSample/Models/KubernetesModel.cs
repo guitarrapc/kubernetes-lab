@@ -12,13 +12,13 @@ namespace KubernetesApiSample.Models
 {
     public class KubernetesModel
     {
-        public async ValueTask<string> CreateOrReplaceDeploymentAsync(KubernetesApi kubeapi, KubernetesCreateOrUpdateRequest request)
+        public async ValueTask<string> CreateOrReplaceDeploymentAsync(Kubernetes kubeapi, KubernetesCreateOrUpdateRequest request)
         {
-            var deploymentsJson = await kubeapi.GetApiAsync($"/apis/apps/v1/namespaces/{request.NameSpace}/deployments", "application/json");
+            var deploymentsJson = await kubeapi.GetApiAsync($"/apis/apps/v1/namespaces/{request.NameSpace}/deployments");
             var deployments = JsonSerializer.Deserialize<V1DeploymentList>(deploymentsJson);
 
             // decode body base64
-            var decodedBody = KubernetesApi.Base64ToString(request.Body);
+            var decodedBody = Kubernetes.Base64ToString(request.Body);
             var yamlDeserializer = new DeserializerBuilder().Build();
             var deploymentRequest = yamlDeserializer.Deserialize<V1MetadataOnly>(decodedBody);
 
@@ -36,13 +36,13 @@ namespace KubernetesApiSample.Models
             }
         }
 
-        public async ValueTask<string> CreateOrReplaceJobAsync(KubernetesApi kubeapi, KubernetesCreateOrUpdateRequest request)
+        public async ValueTask<string> CreateOrReplaceJobAsync(Kubernetes kubeapi, KubernetesCreateOrUpdateRequest request)
         {
-            var deploymentsJson = await kubeapi.GetApiAsync($"/apis/batch/v1/namespaces/{request.NameSpace}/jobs", "application/json");
+            var deploymentsJson = await kubeapi.GetApiAsync($"/apis/batch/v1/namespaces/{request.NameSpace}/jobs");
             var deployments = JsonSerializer.Deserialize<V1JobList>(deploymentsJson);
 
             // decode body base64
-            var decodedBody = KubernetesApi.Base64ToString(request.Body);
+            var decodedBody = Kubernetes.Base64ToString(request.Body);
             var yamlDeserializer = new DeserializerBuilder().Build();
             var deploymentRequest = yamlDeserializer.Deserialize<V1MetadataOnly>(decodedBody);
 

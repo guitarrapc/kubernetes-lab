@@ -29,10 +29,10 @@ namespace KubernetesApiSample
             services.AddControllers();
             services.AddRouting(options => options.LowercaseUrls = true);
 
-            services.AddSingleton<KubernetesApi>(new KubernetesApi(new KubernetesApiConfig
+            services.AddSingleton<Kubernetes>(new Kubernetes(new KubernetesConfig
             { 
                 SkipCertificateValidation = true,
-                ResponseType = ResponseType.Yaml,
+                ResponseType = ResponseType.Json,
             }));
         }
 

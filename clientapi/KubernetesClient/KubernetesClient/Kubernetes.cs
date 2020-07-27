@@ -13,7 +13,7 @@ using static KubernetesClient.WatcherDelegatingHandler;
 
 namespace KubernetesClient
 {
-    public class KubernetesApiConfig
+    public class KubernetesConfig
     {
         public bool SkipCertificateValidation { get; set; }
         public ResponseType ResponseType { get; set; } = ResponseType.Json;
@@ -24,19 +24,19 @@ namespace KubernetesClient
         }
     }
 
-    public class KubernetesApi
+    public class Kubernetes
     {
         public bool IsRunningOnKubernetes { get; }
         private IKubernetesClient _provider;
-        private KubernetesApiConfig _config = new KubernetesApiConfig();
+        private KubernetesConfig _config = new KubernetesConfig();
 
-        public KubernetesApi()
+        public Kubernetes()
         {
             _provider = GetDefaultProvider();
             SetProviderConfig();
             IsRunningOnKubernetes = _provider.IsRunningOnKubernetes;
         }
-        public KubernetesApi(KubernetesApiConfig config)
+        public Kubernetes(KubernetesConfig config)
         {
             _config = config;
             _provider = GetDefaultProvider();

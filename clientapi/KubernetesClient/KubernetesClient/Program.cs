@@ -15,10 +15,10 @@ namespace KubernetesClient
 
     public class KubernetesApp : ConsoleAppBase
     {
-        private KubernetesApi api;
-        public KubernetesApp(KubernetesApi api)
+        private Kubernetes api;
+        public KubernetesApp(Kubernetes api)
         {
-            this.api = new KubernetesApi();
+            this.api = new Kubernetes();
         }
 
         public async ValueTask GetOpenApiSpec()
