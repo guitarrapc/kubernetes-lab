@@ -1,7 +1,5 @@
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
-using KubernetesApiSample.Models;
 using KubernetesClient;
 using KubernetesClient.Models;
 using KubernetesClient.Requests;
@@ -15,12 +13,12 @@ namespace KubernetesApiSample.Controllers
     [Route("[controller]")]
     public class KubernetesController : ControllerBase
     {
-        private ILogger<KubernetesController> _logger;
-        private Kubernetes _kubernetes;
+        private readonly ILogger<KubernetesController> _logger;
+        private readonly Kubernetes _operations;
 
-        public KubernetesController(Kubernetes kubernetes, ILogger<KubernetesController> logger)
+        public KubernetesController(Kubernetes operations, ILogger<KubernetesController> logger)
         {
-            _kubernetes = kubernetes;
+            _operations = operations;
             _logger = logger;
         }
 
@@ -30,7 +28,7 @@ namespace KubernetesApiSample.Controllers
         public KubernetesClientStatusResponse GetStatus()
         {
             _logger.LogInformation("Get status.");
-            var res = _kubernetes.GetStatus();
+            var res = _operations.GetStatus();
             return res;
         }
 
@@ -41,8 +39,8 @@ namespace KubernetesApiSample.Controllers
         public KubernetesClientStatusResponse ConfigureClient(bool skipCertificateValidate = true)
         {
             _logger.LogInformation("Configure status.");
-            _kubernetes.ConfigureClient(skipCertificateValidate);
-            var res = _kubernetes.GetStatus();
+            _operations.ConfigureClient(skipCertificateValidate);
+            var res = _operations.GetStatus();
             return res;
         }
 
@@ -53,8 +51,8 @@ namespace KubernetesApiSample.Controllers
         public KubernetesClientStatusResponse ConfigureResponse(bool isJson = false)
         {
             _logger.LogInformation("Configure response.");
-            _kubernetes.ConfigureResponse(isJson);
-            var res = _kubernetes.GetStatus();
+            _operations.ConfigureResponse(isJson);
+            var res = _operations.GetStatus();
             return res;
         }
 
@@ -64,33 +62,32 @@ namespace KubernetesApiSample.Controllers
         public async Task<string> GetSpec()
         {
             _logger.LogInformation("Get spec api.");
-            var res = await _kubernetes.GetOpenApiSpecAsync();
+            var res = await _operations.GetOpenApiSpecAsync();
             return res;
         }
 
         #region deployments
 
         // curl localhost:5000/kubernetes/deployments
+        // curl localhost:5000/kubernetes/deployments?ns=default
         // response format: depends on accept type
         [HttpGet("deployments")]
-        public async Task<string[]> GetDeployments()
+        public async Task<string[]> GetDeployments(string ns = "")
         {
             _logger.LogInformation("Get deployments api.");
-            var res = await _kubernetes.GetApiAsync("/apis/apps/v1/deployments", "application/json");
-            var deployments = JsonSerializer.Deserialize<V1DeploymentList>(res);
+            var deployments = await _operations.GetDeploymentsAsync(ns);
             return deployments.items
                 .Select(item => $"{item.metadata.@namespace}/{item.metadata.name}")
                 .ToArray();
         }
 
-        // curl "localhost:5000/kubernetes/deployment?namespace=default&name=kubernetesapisample"
+        // curl "localhost:5000/kubernetes/deployment?ns=default&name=kubernetesapisample"
         // response format: depends on accept type
         [HttpGet("deployment")]
-        public async Task<V1Deployment> GetDeployment(string @namespace, string name)
+        public async Task<V1Deployment> GetDeployment(string ns, string name)
         {
             _logger.LogInformation("Get deployment api.");
-            var res = await _kubernetes.GetApiAsync($"/apis/apps/v1/namespaces/{@namespace}/deployments/{name}", "application/json");
-            var deployment = JsonSerializer.Deserialize<V1Deployment>(res);
+            var deployment = await _operations.GetDeploymentAsync(ns, name);
             return deployment;
         }
 
@@ -100,9 +97,8 @@ namespace KubernetesApiSample.Controllers
         public async Task<V1Deployment> CreateOrUpdateDeployment(KubernetesCreateOrUpdateRequest request)
         {
             _logger.LogInformation($"Create or Replace deployment api. namespace {request.NameSpace}, bodyContentType {request.BodyContentType}, body {request.Body}");
-            var model = new KubernetesModel();
-            var res = await model.CreateOrReplaceDeploymentAsync(_kubernetes, request);
-            var deployment = JsonSerializer.Deserialize<V1Deployment>(res);
+            var decodedBody = Kubernetes.Base64ToString(request.Body);
+            var deployment = await _operations.CreateOrReplaceDeploymentAsync(request.NameSpace, decodedBody, request.BodyContentType);
             return deployment;
         }
 
@@ -112,8 +108,10 @@ namespace KubernetesApiSample.Controllers
         public async Task<V1Status> DeleteDeployment(KubernetesDeleteRequest request)            
         {
             _logger.LogInformation($"Delete deployment api. namespace {request.NameSpace}, name {request.Name}");
-            var res = await _kubernetes.DeleteApiAsync($"/apis/apps/v1/namespaces/{request.NameSpace}/deployments/{request.Name}");
-            var status = JsonSerializer.Deserialize<V1Status>(res);
+            var options = request.GraceperiodSecond.HasValue
+                ? new V1DeleteOptions { gracePeriodSeconds = request.GraceperiodSecond.Value }
+                : null;
+            var status = await _operations.DeleteDeploymentAsync(request.NameSpace, request.Name, options);
             return status;
         }
         #endregion
@@ -121,26 +119,25 @@ namespace KubernetesApiSample.Controllers
         #region jobs
 
         // curl localhost:5000/kubernetes/jobs
+        // curl localhost:5000/kubernetes/jobs?ns=default
         // response format: JSON
         [HttpGet("jobs")]
-        public async Task<string[]> GetJobs()
+        public async Task<string[]> GetJobs(string ns = "")
         {
             _logger.LogInformation("Get jobs api.");
-            var res = await _kubernetes.GetApiAsync("/apis/batch/v1/jobs", "application/json");
-            var jobs = JsonSerializer.Deserialize<V1JobList>(res);
+            var jobs = await _operations.GetJobsAsync(ns);
             return jobs.items
                 .Select(item => $"{item.metadata.@namespace}/{item.metadata.name}")
                 .ToArray();
         }
 
-        // curl "localhost:5000/kubernetes/job?namespace=default&name=hoge"
+        // curl "localhost:5000/kubernetes/job?ns=default&name=hoge"
         // response format: JSON
         [HttpGet("job")]
-        public async Task<V1Job> GetJob(string @namespace, string name)
+        public async Task<V1Job> GetJob(string ns, string name)
         {
             _logger.LogInformation("Get job api.");
-            var res = await _kubernetes.GetApiAsync($"/apis/batch/v1/namespaces/{@namespace}/jobs/{name}", "application/json");
-            var job = JsonSerializer.Deserialize<V1Job>(res);
+            var job = await _operations.GetJobAsync(ns, name);
             return job;
         }
 
@@ -150,9 +147,8 @@ namespace KubernetesApiSample.Controllers
         public async Task<V1Job> CreateOrUpdateJob(KubernetesCreateOrUpdateRequest request)
         {
             _logger.LogInformation($"Create or Replace job api. namespace {request.NameSpace}, bodyContentType {request.BodyContentType}, body {request.Body}");
-            var model = new KubernetesModel();
-            var res = await model.CreateOrReplaceJobAsync(_kubernetes, request);
-            var job = JsonSerializer.Deserialize<V1Job>(res);
+            var decodedBody = Kubernetes.Base64ToString(request.Body);
+            var job = await _operations.CreateOrReplaceJobAsync(request.NameSpace, decodedBody, request.BodyContentType);
             return job;
         }
 
@@ -168,9 +164,8 @@ namespace KubernetesApiSample.Controllers
                 propagationPolicy = "Foreground",
                 gracePeriodSeconds = request.GraceperiodSecond,
             };
-            var res = await _kubernetes.DeleteApiAsync($"/apis/batch/v1/namespaces/{request.NameSpace}/jobs/{request.Name}", options);
-            var status = JsonSerializer.Deserialize<V1Job>(res);
-            return status;
+            var res = await _operations.DeleteJobAsync(request.NameSpace, request.Name, options);
+            return res;
         }
 
         #endregion

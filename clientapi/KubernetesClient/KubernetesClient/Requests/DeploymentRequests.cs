@@ -23,7 +23,7 @@ namespace KubernetesClient.Requests
         public string NameSpace { get; set; } = "default";
         [Required]
         public string Name { get; set; }
-        public int GraceperiodSecond { get; set; }
+        public int? GraceperiodSecond { get; set; }
     }
     public class V1MetadataOnly
     {

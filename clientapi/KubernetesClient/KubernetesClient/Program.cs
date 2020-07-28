@@ -15,21 +15,21 @@ namespace KubernetesClient
 
     public class KubernetesApp : ConsoleAppBase
     {
-        private Kubernetes api;
-        public KubernetesApp(Kubernetes api)
+        private readonly Kubernetes _operations;
+        public KubernetesApp(Kubernetes operations)
         {
-            this.api = new Kubernetes();
+            _operations = operations;
         }
 
         public async ValueTask GetOpenApiSpec()
         {
-            if (!api.IsRunningOnKubernetes)
+            if (!_operations.IsRunningOnKubernetes)
             {
                 Console.WriteLine("App not run on Kubernetes. Quit command.");
                 return;
             }
 
-            var res = await api.GetOpenApiSpecAsync();
+            var res = await _operations.GetOpenApiSpecAsync();
             Console.WriteLine(res);
         }
     }

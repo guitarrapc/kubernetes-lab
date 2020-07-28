@@ -81,8 +81,10 @@ namespace KubernetesClient
 
         public HttpClient CreateHttpClient()
         {
-            var handler = new WatcherDelegatingHandler();
-            handler.InnerHandler = CreateDefaultHttpClientHandler();
+            var handler = new WatcherDelegatingHandler
+            {
+                InnerHandler = CreateDefaultHttpClientHandler()
+            };
             var httpClient = new HttpClient(handler);
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", AccessToken);
 
