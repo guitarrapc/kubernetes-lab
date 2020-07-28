@@ -42,7 +42,7 @@ namespace KubernetesClient
 
         public async ValueTask<string> WatchDeploymentsManifestAsync(string ns, string resourceVersion)
         {
-            var res = await GetStreamApiAsync($"/apis/apps/v1/namespaces/{ns}/deployments?watch=1&resourceVersion={resourceVersion}", "application/yaml").ConfigureAwait(false);
+            var res = await GetStreamApiAsync($"/apis/apps/v1/namespaces/{ns}/deployments?watch=1&resourceVersion={resourceVersion}", "application/json").ConfigureAwait(false);
             return res;
         }
 
