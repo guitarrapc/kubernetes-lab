@@ -1,32 +1,37 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using KubernetesClient.Models;
 using KubernetesClient.Responses;
-using static KubernetesClient.WatcherDelegatingHandler;
+using KubernetesClient.Serializers;
 
 namespace KubernetesClient
 {
     public enum WatchEventType
     {
-        /// <summary>Emitted when an object is created, modified to match a watch's filter, or when a watch is first opened.</summary>
+        /// <summary>
+        /// When object created, modified existing, watch is first opened.
+        /// </summary>
         [EnumMember(Value = "ADDED")] Added,
-        /// <summary>Emitted when an object is modified.</summary>
+        /// <summary>
+        /// When object modified
+        /// </summary>
         [EnumMember(Value = "MODIFIED")] Modified,
-        /// <summary>Emitted when an object is deleted or modified to no longer match a watch's filter.</summary>
+        /// <summary>
+        /// When object deleted
+        /// </summary>
         [EnumMember(Value = "DELETED")] Deleted,
-        /// <summary>Emitted when an error occurs while watching resources. Most commonly, the error is 410 Gone which indicates that
-        /// the watch resource version was outdated and events were probably lost. In that case, the watch should be restarted.
+        /// <summary>
+        /// When error happen while watching.
+        /// common error 410 (Gone) means watch resource version is outdated, over 5min, and event lost, you need restart watch.
         /// </summary>
         [EnumMember(Value = "ERROR")] Error,
-        /// <summary>Bookmarks may be emitted periodically to update the resource version. The object will
-        /// contain only the resource version.
+        /// <summary>
+        /// When periodically to update the resource version.
+        /// object contains only the resource version.
         /// </summary>
         [EnumMember(Value = "BOOKMARK")] Bookmark,
     }
@@ -38,6 +43,9 @@ namespace KubernetesClient
 
         private readonly CancellationTokenSource _cts;
 
+        /// <summary>
+        /// Indicate currently watching
+        /// </summary>
         public bool Watching { get; private set; }
         /// <summary>
         /// Event raise when kubernetes api server change resource T.
@@ -61,7 +69,7 @@ namespace KubernetesClient
             OnEvent += onEvent;
             OnError += onError;
             OnClosed += onClosed;
-
+            
             _cts = cts;
         }
 
@@ -80,7 +88,7 @@ namespace KubernetesClient
             _streamReader?.Dispose();
         }
 
-        public async Task WatchLoop()
+        public async Task Execute()
         {
             try
             {
@@ -88,7 +96,7 @@ namespace KubernetesClient
                 string line;
                 _streamReader = await _streamReaderFactory().ConfigureAwait(false);
 
-                // ReadLineAsync will return null when we've reached the end of the stream.
+                // ReadLineAsync will return null when reached the end of the stream.
                 while ((line = await _streamReader.ReadLineAsync().ConfigureAwait(false)) != null)
                 {
                     if (_cts.IsCancellationRequested)
@@ -96,22 +104,21 @@ namespace KubernetesClient
 
                     try
                     {
-                        var @event = JsonSerializer.Deserialize<WatchEvent>(line);
-
-                        if (@event == null)
+                        var watchEvent = JsonConvert.DeserializeStringEnum<WatchEvent>(line);
+                        if (watchEvent != null)
                         {
-                            var statusEvent = JsonSerializer.Deserialize<Watch<V1Status>.WatchEvent>(line);
-                            var exception = new KubernetesException(statusEvent.Object);
-                            OnError?.Invoke(exception);
+                            OnEvent?.Invoke(watchEvent.Type, watchEvent.Object, _cts);
                         }
                         else
-                        {
-                            OnEvent?.Invoke(@event.Type, @event.Object, _cts);
+                        { 
+                            var statusEvent = JsonConvert.DeserializeStringEnum<Watch<V1Status>.WatchEvent>(line);
+                            var exception = new KubernetesException(statusEvent?.Object);
+                            OnError?.Invoke(exception);
                         }
                     }
                     catch (Exception ex)
                     {
-                        // error if deserialized failed or OnEvent throws
+                        // deserialized failed or OnEvent throws
                         OnError?.Invoke(ex);
                     }
                 }
@@ -129,6 +136,7 @@ namespace KubernetesClient
 
         public class WatchEvent
         {
+            [JsonPropertyName("type")]
             public WatchEventType Type { get; set; }
             [JsonPropertyName("object")]
             public T Object { get; set; }
@@ -144,7 +152,7 @@ namespace KubernetesClient
             return new Watch<T>(async () =>
             {
                 var response = await responseTask.ConfigureAwait(false);
-                if (!(response.Response.Content is LineSeparatedHttpContent content))
+                if (!(response.Response.Content is WatcherDelegatingHandler.LineSeparatedHttpContent content))
                 {
                     throw new KubernetesException("request is not watchable.");
                 }
@@ -159,7 +167,7 @@ namespace KubernetesClient
             return new Watch<T>(async () =>
             {
                 var response = await responseTask.ConfigureAwait(false);
-                if (!(response.Response.Content is LineSeparatedHttpContent content))
+                if (!(response.Response.Content is WatcherDelegatingHandler.LineSeparatedHttpContent content))
                 {
                     throw new KubernetesException("request is not watchable.");
                 }

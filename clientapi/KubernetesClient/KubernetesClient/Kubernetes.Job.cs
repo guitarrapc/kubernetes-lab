@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using KubernetesClient.Models;
 using KubernetesClient.Requests;
 using KubernetesClient.Responses;
+using KubernetesClient.Serializers;
 using YamlDotNet.Serialization;
 
 namespace KubernetesClient
@@ -23,7 +20,7 @@ namespace KubernetesClient
             var res = string.IsNullOrEmpty(ns)
                 ? await GetApiAsync($"/apis/batch/v1/jobs", "application/yaml").ConfigureAwait(false)
                 : await GetApiAsync($"/apis/batch/v1/namespaces/{ns}/jobs", "application/yaml").ConfigureAwait(false);
-            var jobs = JsonSerializer.Deserialize<V1JobList>(res.Content);
+            var jobs = JsonConvert.Deserialize<V1JobList>(res.Content);
             return new HttpResponse<V1JobList>(jobs)
             {
                 Response = res.HttpResponseMessage,
@@ -38,7 +35,7 @@ namespace KubernetesClient
         public async ValueTask<HttpResponse<V1Job>> GetJobManifestAsync(string ns, string name)
         {
             var res = await GetApiAsync($"/apis/batch/v1/namespaces/{ns}/jobs/{name}", "application/yaml").ConfigureAwait(false);
-            var job = JsonSerializer.Deserialize<V1Job>(res.Content);
+            var job = JsonConvert.Deserialize<V1Job>(res.Content);
             return new HttpResponse<V1Job>(job)
             {
                 Response = res.HttpResponseMessage,
@@ -53,7 +50,7 @@ namespace KubernetesClient
         public async ValueTask<HttpResponse<V1WatchEvent>> WatchJobsManifestAsync(string ns, string resourceVersion)
         {
             var res = await GetStreamApiAsync($"/apis/batch/v1/namespaces/{ns}/jobs?watch=1&resourceVersion={resourceVersion}", "application/json").ConfigureAwait(false);
-            var watch = JsonSerializer.Deserialize<V1WatchEvent>(res.Content);
+            var watch = JsonConvert.Deserialize<V1WatchEvent>(res.Content);
             return new HttpResponse<V1WatchEvent>(watch)
             {
                 Response = res.HttpResponseMessage,
@@ -71,13 +68,13 @@ namespace KubernetesClient
             var request = yamlDeserializer.Deserialize<V1MetadataOnly>(yaml);
 
             var currentJobsRes = await GetApiAsync($"/apis/batch/v1/namespaces/{ns}/jobs");
-            var current = JsonSerializer.Deserialize<V1JobList>(currentJobsRes.Content);
+            var current = JsonConvert.Deserialize<V1JobList>(currentJobsRes.Content);
 
             if (current.items.Any(x => x.metadata.name == request.metadata.name))
             {
                 // replace
                 var res = await PutApiAsync($"/apis/batch/v1/namespaces/{ns}/jobs/{request.metadata.name}", yaml, contentType).ConfigureAwait(false);
-                var job = JsonSerializer.Deserialize<V1Job>(res.Content);
+                var job = JsonConvert.Deserialize<V1Job>(res.Content);
                 return new HttpResponse<V1Job>(job)
                 {
                     Response = res.HttpResponseMessage,
@@ -87,7 +84,7 @@ namespace KubernetesClient
             {
                 // create
                 var res = await PostApiAsync($"/apis/batch/v1/namespaces/{ns}/jobs", yaml, contentType).ConfigureAwait(false);
-                var job = JsonSerializer.Deserialize<V1Job>(res.Content);
+                var job = JsonConvert.Deserialize<V1Job>(res.Content);
                 return new HttpResponse<V1Job>(job)
                 {
                     Response = res.HttpResponseMessage,
@@ -103,7 +100,7 @@ namespace KubernetesClient
         public async Task<HttpResponse<V1Job>> DeleteJobHttpAsync(string @namespace, string name, V1DeleteOptions options)
         {
             var res = await DeleteApiAsync($"/apis/batch/v1/namespaces/{@namespace}/jobs/{name}", options).ConfigureAwait(false);
-            var job = JsonSerializer.Deserialize<V1Job>(res.Content);
+            var job = JsonConvert.Deserialize<V1Job>(res.Content);
             return new HttpResponse<V1Job>(job)
             {
                 Response = res.HttpResponseMessage,

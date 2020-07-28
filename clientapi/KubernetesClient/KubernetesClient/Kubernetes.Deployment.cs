@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using KubernetesClient.Models;
 using KubernetesClient.Requests;
 using KubernetesClient.Responses;
+using KubernetesClient.Serializers;
 using YamlDotNet.Serialization;
 
 namespace KubernetesClient
@@ -34,7 +31,7 @@ namespace KubernetesClient
                 url += "?" + string.Join("&", queryParameters);
             }
             var res = await GetApiAsync(url).ConfigureAwait(false);
-            var deployments = JsonSerializer.Deserialize<V1DeploymentList>(res.Content);
+            var deployments = JsonConvert.Deserialize<V1DeploymentList>(res.Content);
             return new HttpResponse<V1DeploymentList>(deployments)
             {
                 Response = res.HttpResponseMessage,
@@ -49,7 +46,7 @@ namespace KubernetesClient
         public async ValueTask<HttpResponse<V1Deployment>> GetDeploymentHttpAsync(string ns, string name)
         {
             var res = await GetApiAsync($"/apis/apps/v1/namespaces/{ns}/deployments/{name}").ConfigureAwait(false);
-            var deployment = JsonSerializer.Deserialize<V1Deployment>(res.Content);
+            var deployment = JsonConvert.Deserialize<V1Deployment>(res.Content);
             return new HttpResponse<V1Deployment>(deployment)
             {
                 Response = res.HttpResponseMessage,
@@ -64,7 +61,7 @@ namespace KubernetesClient
         public async ValueTask<HttpResponse<V1WatchEvent>> WatchDeploymentsHttpAsync(string ns, string resourceVersion)
         {
             var res = await GetStreamApiAsync($"/apis/apps/v1/namespaces/{ns}/deployments?watch=true&resourceVersion={resourceVersion}", "application/json").ConfigureAwait(false);
-            var watch = JsonSerializer.Deserialize<V1WatchEvent>(res.Content);
+            var watch = JsonConvert.Deserialize<V1WatchEvent>(res.Content);
             return new HttpResponse<V1WatchEvent>(watch)
             {
                 Response = res.HttpResponseMessage,
@@ -82,13 +79,13 @@ namespace KubernetesClient
             var request = yamlDeserializer.Deserialize<V1MetadataOnly>(yaml);
 
             var currentDeploymentsRes = await GetApiAsync($"/apis/apps/v1/namespaces/{ns}/deployments");
-            var current = JsonSerializer.Deserialize<V1DeploymentList>(currentDeploymentsRes.Content);
+            var current = JsonConvert.Deserialize<V1DeploymentList>(currentDeploymentsRes.Content);
 
             if (current.items.Any(x => x.metadata.name == request.metadata.name))
             {
                 // replace
                 var res = await PutApiAsync($"/apis/apps/v1/namespaces/{ns}/deployments/{request.metadata.name}", yaml, contentType).ConfigureAwait(false);
-                var deployment = JsonSerializer.Deserialize<V1Deployment>(res.Content);
+                var deployment = JsonConvert.Deserialize<V1Deployment>(res.Content);
                 return new HttpResponse<V1Deployment>(deployment)
                 {
                     Response = res.HttpResponseMessage,
@@ -98,7 +95,7 @@ namespace KubernetesClient
             {
                 // create
                 var res = await PostApiAsync($"/apis/apps/v1/namespaces/{ns}/deployments", yaml, contentType).ConfigureAwait(false);
-                var deployment = JsonSerializer.Deserialize<V1Deployment>(res.Content);
+                var deployment = JsonConvert.Deserialize<V1Deployment>(res.Content);
                 return new HttpResponse<V1Deployment>(deployment)
                 {
                     Response = res.HttpResponseMessage,
@@ -116,7 +113,7 @@ namespace KubernetesClient
             var res = options == null
                 ? await DeleteApiAsync($"/apis/apps/v1/namespaces/{ns}/deployments/{name}").ConfigureAwait(false)
                 : await DeleteApiAsync($"/apis/apps/v1/namespaces/{ns}/deployments/{name}", options).ConfigureAwait(false);
-            var status = JsonSerializer.Deserialize<V1Status>(res.Content);
+            var status = JsonConvert.Deserialize<V1Status>(res.Content);
             return new HttpResponse<V1Status>(status)
             {
                 Response = res.HttpResponseMessage,

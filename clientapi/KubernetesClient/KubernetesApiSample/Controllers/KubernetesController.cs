@@ -117,14 +117,10 @@ namespace KubernetesApiSample.Controllers
             }
             int added = 0;
             var result = new List<V1Deployment>();
-            //var res = _operations.WatchDeploymentsHttpAsync(ns, resourceVersion);
-            //using (var watch = res.Watch<V1Deployment, V1WatchEvent>((type, item, cts) =>
             var res = _operations.GetDeploymentsHttpAsync(ns, true);
             using (var watch = res.Watch<V1Deployment, V1DeploymentList>((type, item, cts) =>
             {
-                _logger.LogInformation("Watch event");
-                _logger.LogInformation(type.ToString());
-                _logger.LogInformation(item.ToString());
+                _logger.LogInformation($"{type}, {item.metadata.@namespace}/{item.metadata.name}");
                 if (type == WatchEventType.Added)
                 {
                     added++;
@@ -134,9 +130,13 @@ namespace KubernetesApiSample.Controllers
                     }
                     result.Add(item);
                 }
-            }, ex => _logger.LogCritical(ex, ex.Message), () => _logger.LogInformation("watch closed."), cts))
+            },
+            ex => {
+                _logger.LogCritical(ex, ex.Message);
+                cts.Cancel();
+            }, () => _logger.LogInformation("watch closed."), cts))
             {
-                await watch.WatchLoop();
+                await watch.Execute();
             }
 
             _logger.LogInformation($"return watch result, count {result.Count} names {string.Join(", ", result.Select(x => $"{x.metadata.@namespace}/{x.metadata.name}"))}");
@@ -158,7 +158,7 @@ namespace KubernetesApiSample.Controllers
         [HttpPost("deployment")]
         public async Task<V1Deployment> CreateOrUpdateDeployment(KubernetesCreateOrUpdateRequest request)
         {
-            _logger.LogInformation($"Create or Replace deployment api. namespace {request.NameSpace}, bodyContentType {request.BodyContentType}, body {request.Body}");
+            _logger.LogInformation($"Create or Replace deployment api. namespace {request.NameSpace}, bodyContentType {request.BodyContentType}");
             var decodedBody = Kubernetes.Base64ToString(request.Body);
             var deployment = await _operations.CreateOrReplaceDeploymentAsync(request.NameSpace, decodedBody, request.BodyContentType);
             return deployment;
@@ -223,7 +223,7 @@ namespace KubernetesApiSample.Controllers
         [HttpPost("job")]
         public async Task<V1Job> CreateOrUpdateJob(KubernetesCreateOrUpdateRequest request)
         {
-            _logger.LogInformation($"Create or Replace job api. namespace {request.NameSpace}, bodyContentType {request.BodyContentType}, body {request.Body}");
+            _logger.LogInformation($"Create or Replace job api. namespace {request.NameSpace}, bodyContentType {request.BodyContentType}");
             var decodedBody = Kubernetes.Base64ToString(request.Body);
             var job = await _operations.CreateOrReplaceJobAsync(request.NameSpace, decodedBody, request.BodyContentType);
             return job;

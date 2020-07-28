@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using KubernetesClient.Models;
 
-namespace KubernetesClient.Converters
+namespace KubernetesClient.Serializers
 {
     /// <summary>
     /// Force handle JSON number as string type.

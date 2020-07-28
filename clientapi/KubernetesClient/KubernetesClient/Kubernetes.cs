@@ -3,11 +3,11 @@ using System.Buffers;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using KubernetesClient.Models;
 using KubernetesClient.Responses;
+using KubernetesClient.Serializers;
 using LitJWT;
 using static KubernetesClient.WatcherDelegatingHandler;
 
@@ -91,14 +91,14 @@ namespace KubernetesClient
         /// <param name="apiPath"></param>
         /// <param name="acceptHeader"></param>
         /// <returns></returns>
-        private async ValueTask<HttpResponseTuple> GetApiAsync(string apiPath, string acceptHeader = default)
+        private async ValueTask<HttpResponseWrapper> GetApiAsync(string apiPath, string acceptHeader = default)
         {
             using var httpClient = _provider.CreateHttpClient();
             SetAcceptHeader(httpClient, acceptHeader);
             var request = new HttpRequestMessage(HttpMethod.Get, _provider.KubernetesServiceEndPoint + apiPath);
             var res = await httpClient.SendAsync(request).ConfigureAwait(false);
             var responseContent = await res.Content.ReadAsStringAsync();
-            return new HttpResponseTuple(res, responseContent);
+            return new HttpResponseWrapper(res, responseContent);
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace KubernetesClient
         /// <param name="apiPath"></param>
         /// <param name="acceptHeader"></param>
         /// <returns></returns>
-        private async ValueTask<HttpResponseTuple> GetStreamApiAsync(string apiPath, string acceptHeader = default, CancellationToken ct = default)
+        private async ValueTask<HttpResponseWrapper> GetStreamApiAsync(string apiPath, string acceptHeader = default, CancellationToken ct = default)
         {
             using var httpClient = _provider.CreateHttpClient();
             SetAcceptHeader(httpClient, acceptHeader);
@@ -116,7 +116,7 @@ namespace KubernetesClient
             var stream = await res.Content.ReadAsStreamAsync().ConfigureAwait(false);
             var reader = new PeekableStreamReader(new CancelableStream(stream, ct));
             var responseContent = await reader.ReadLineAsync().ConfigureAwait(false);
-            return new HttpResponseTuple(res, responseContent);
+            return new HttpResponseWrapper(res, responseContent);
         }
 
         /// <summary>
@@ -127,7 +127,7 @@ namespace KubernetesClient
         /// <param name="bodyContenType"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async ValueTask<HttpResponseTuple> PostApiAsync(string apiPath, string body, string bodyContenType = "application/yaml",  CancellationToken ct = default)
+        private async ValueTask<HttpResponseWrapper> PostApiAsync(string apiPath, string body, string bodyContenType = "application/yaml",  CancellationToken ct = default)
         {
             using var httpClient = _provider.CreateHttpClient();
             SetAcceptHeader(httpClient);
@@ -135,7 +135,7 @@ namespace KubernetesClient
             var res = await httpClient.PostAsync(_provider.KubernetesServiceEndPoint + apiPath, content, ct).ConfigureAwait(false);
             res.EnsureSuccessStatusCode();
             var responseContent = await res.Content.ReadAsStringAsync().ConfigureAwait(false);
-            return new HttpResponseTuple(res, responseContent);
+            return new HttpResponseWrapper(res, responseContent);
         }
 
         /// <summary>
@@ -146,7 +146,7 @@ namespace KubernetesClient
         /// <param name="bodyContenType"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async ValueTask<HttpResponseTuple> PutApiAsync(string apiPath, string body, string bodyContenType = "application/yaml", CancellationToken ct = default)
+        private async ValueTask<HttpResponseWrapper> PutApiAsync(string apiPath, string body, string bodyContenType = "application/yaml", CancellationToken ct = default)
         {
             using var httpClient = _provider.CreateHttpClient();
             SetAcceptHeader(httpClient);
@@ -154,7 +154,7 @@ namespace KubernetesClient
             var res = await httpClient.PutAsync(_provider.KubernetesServiceEndPoint + apiPath, content, ct).ConfigureAwait(false);
             res.EnsureSuccessStatusCode();
             var responseContent = await res.Content.ReadAsStringAsync().ConfigureAwait(false);
-            return new HttpResponseTuple(res, responseContent);
+            return new HttpResponseWrapper(res, responseContent);
         }
 
         /// <summary>
@@ -163,14 +163,14 @@ namespace KubernetesClient
         /// <param name="apiPath"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async ValueTask<HttpResponseTuple> DeleteApiAsync(string apiPath, CancellationToken ct = default)
+        private async ValueTask<HttpResponseWrapper> DeleteApiAsync(string apiPath, CancellationToken ct = default)
         {
             using var httpClient = _provider.CreateHttpClient();
             SetAcceptHeader(httpClient);
             var res = await httpClient.DeleteAsync(_provider.KubernetesServiceEndPoint + apiPath, ct).ConfigureAwait(false);
             res.EnsureSuccessStatusCode();
             var responseContent = await res.Content.ReadAsStringAsync().ConfigureAwait(false);
-            return new HttpResponseTuple(res, responseContent);
+            return new HttpResponseWrapper(res, responseContent);
         }
         /// <summary>
         /// Delete resource
@@ -179,11 +179,11 @@ namespace KubernetesClient
         /// <param name="options"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async ValueTask<HttpResponseTuple> DeleteApiAsync(string apiPath, V1DeleteOptions options, CancellationToken ct = default)
+        private async ValueTask<HttpResponseWrapper> DeleteApiAsync(string apiPath, V1DeleteOptions options, CancellationToken ct = default)
         {
             using var httpClient = _provider.CreateHttpClient();
             SetAcceptHeader(httpClient);
-            var content = new StringContent(JsonSerializer.Serialize(options), Encoding.UTF8, "application/json");
+            var content = new StringContent(JsonConvert.Serialize(options), Encoding.UTF8, "application/json");
             var request = new HttpRequestMessage(HttpMethod.Delete, _provider.KubernetesServiceEndPoint + apiPath)
             {
                 Content = content,
@@ -191,7 +191,7 @@ namespace KubernetesClient
             var res = await httpClient.SendAsync(request, ct).ConfigureAwait(false);
             res.EnsureSuccessStatusCode();
             var responseContent = await res.Content.ReadAsStringAsync().ConfigureAwait(false);
-            return new HttpResponseTuple(res,responseContent);
+            return new HttpResponseWrapper(res,responseContent);
         }
 
         #endregion

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using KubernetesClient.Converters;
+using KubernetesClient.Serializers;
 
 namespace KubernetesClient.Models
 {
