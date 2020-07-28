@@ -40,6 +40,13 @@ namespace KubernetesClient
             return res;
         }
 
+        public async ValueTask<V1WatchEvent> WatchDeploymentsAsync(string ns, string resourceVersion)
+        {
+            var res = await GetStreamApiAsync($"/apis/apps/v1/namespaces/{ns}/deployments?watch=1&resourceVersion={resourceVersion}", "application/json").ConfigureAwait(false);
+            var watch = JsonSerializer.Deserialize<V1WatchEvent>(res);
+            return watch;
+        }
+
         public async ValueTask<string> WatchDeploymentsManifestAsync(string ns, string resourceVersion)
         {
             var res = await GetStreamApiAsync($"/apis/apps/v1/namespaces/{ns}/deployments?watch=1&resourceVersion={resourceVersion}", "application/json").ConfigureAwait(false);

@@ -40,9 +40,16 @@ namespace KubernetesClient
             return res;
         }
 
+        public async ValueTask<V1WatchEvent> WatchJobsAsync(string ns, string resourceVersion)
+        {
+            var res = await GetStreamApiAsync($"/apis/batch/v1/namespaces/{ns}/jobs?watch=1&resourceVersion={resourceVersion}", "application/json").ConfigureAwait(false);
+            var watch = JsonSerializer.Deserialize<V1WatchEvent>(res);
+            return watch;
+        }
+
         public async ValueTask<string> WatchJobsManifestAsync(string ns, string resourceVersion)
         {
-            var res = await GetStreamApiAsync($"/apis/batch/v1/namespaces/{ns}/jobs?watch=1&resourceVersion={resourceVersion}", "application/yaml").ConfigureAwait(false);
+            var res = await GetStreamApiAsync($"/apis/batch/v1/namespaces/{ns}/jobs?watch=1&resourceVersion={resourceVersion}", "application/json").ConfigureAwait(false);
             return res;
         }
 

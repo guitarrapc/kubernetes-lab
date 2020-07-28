@@ -33,7 +33,7 @@ namespace KubernetesApiSample.Controllers
         }
 
         // curl localhost:5000/kubernetes/configure_client?skipcertificatevalidate=true
-        // response format: always json response.
+        // response format: JSON
         [HttpGet("configure_client")]
         [HttpPost("configure_client")]
         public KubernetesClientStatusResponse ConfigureClient(bool skipCertificateValidate = true)
@@ -45,7 +45,7 @@ namespace KubernetesApiSample.Controllers
         }
 
         // curl localhost:5000/kubernetes/configure_response?isJson=true
-        // response format: always json response.
+        // response format: JSON
         [HttpGet("configure_response")]
         [HttpPost("configure_response")]
         public KubernetesClientStatusResponse ConfigureResponse(bool isJson = false)
@@ -57,7 +57,7 @@ namespace KubernetesApiSample.Controllers
         }
 
         // curl localhost:5000/kubernetes/spec
-        // response format: always json response.
+        // response format: JSON
         [HttpGet("spec")]
         public async Task<string> GetSpec()
         {
@@ -70,7 +70,7 @@ namespace KubernetesApiSample.Controllers
 
         // curl localhost:5000/kubernetes/deployments
         // curl localhost:5000/kubernetes/deployments?ns=default
-        // response format: depends on accept type
+        // response format: JSON
         [HttpGet("deployments")]
         public async Task<string[]> GetDeployments(string ns = "")
         {
@@ -81,8 +81,23 @@ namespace KubernetesApiSample.Controllers
                 .ToArray();
         }
 
+        // curl localhost:5000/kubernetesmanifest/deployments/watch?ns=default
+        // response format: JSON
+        [HttpGet("deployments/watch")]
+        public async Task<V1WatchEvent> WatchDeployments(string ns, string resourceVersion = "")
+        {
+            _logger.LogInformation($"Watch deployments api. resourceVersion {resourceVersion}");
+            if (string.IsNullOrEmpty(resourceVersion))
+            {
+                var deployments = await _operations.GetDeploymentsAsync(ns);
+                resourceVersion = deployments.metadata.resourceVersion;
+            }
+            var res = await _operations.WatchDeploymentsAsync(ns, resourceVersion);
+            return res;
+        }
+
         // curl "localhost:5000/kubernetes/deployment?ns=default&name=kubernetesapisample"
-        // response format: depends on accept type
+        // response format: JSON
         [HttpGet("deployment")]
         public async Task<V1Deployment> GetDeployment(string ns, string name)
         {
@@ -92,7 +107,7 @@ namespace KubernetesApiSample.Controllers
         }
 
         // curl -X POST -H "Content-Type: application/json" localhost:5000/kubernetes/deployment -d '{"namespace": "default", "body": "YXBpVmVyc2lvbjogYXBwcy92MSAjICBmb3IgazhzIHZlcnNpb25zIGJlZm9yZSAxLjkuMCB1c2UgYXBwcy92MWJldGEyICBhbmQgYmVmb3JlIDEuOC4wIHVzZSBleHRlbnNpb25zL3YxYmV0YTENCmtpbmQ6IERlcGxveW1lbnQNCm1ldGFkYXRhOg0KICBuYW1lOiBmcm9udGVuZA0Kc3BlYzoNCiAgc2VsZWN0b3I6DQogICAgbWF0Y2hMYWJlbHM6DQogICAgICBhcHA6IGd1ZXN0Ym9vaw0KICB0ZW1wbGF0ZToNCiAgICBtZXRhZGF0YToNCiAgICAgIGxhYmVsczoNCiAgICAgICAgYXBwOiBndWVzdGJvb2sNCiAgICBzcGVjOg0KICAgICAgY29udGFpbmVyczoNCiAgICAgICAgLSBuYW1lOiBwaHAtcmVkaXMNCiAgICAgICAgICBpbWFnZTogazhzLmdjci5pby9ndWVzdGJvb2s6djMNCiAgICAgICAgICByZXNvdXJjZXM6DQogICAgICAgICAgICByZXF1ZXN0czoNCiAgICAgICAgICAgICAgY3B1OiAxMDBtDQogICAgICAgICAgICAgIG1lbW9yeTogMTAwTWkNCiAgICAgICAgICAgIGxpbWl0czoNCiAgICAgICAgICAgICAgY3B1OiAyMDAwbQ0KICAgICAgICAgICAgICBtZW1vcnk6IDEwMDBNaQ0KICAgICAgICAgIGVudjoNCiAgICAgICAgICAgIC0gbmFtZTogR0VUX0hPU1RTX0ZST00NCiAgICAgICAgICAgICAgdmFsdWU6IGRucw0KICAgICAgICAgICAgICAjIElmIHlvdXIgY2x1c3RlciBjb25maWcgZG9lcyBub3QgaW5jbHVkZSBhIGRucyBzZXJ2aWNlLCB0aGVuIHRvDQogICAgICAgICAgICAgICMgaW5zdGVhZCBhY2Nlc3MgZW52aXJvbm1lbnQgdmFyaWFibGVzIHRvIGZpbmQgc2VydmljZSBob3N0DQogICAgICAgICAgICAgICMgaW5mbywgY29tbWVudCBvdXQgdGhlICd2YWx1ZTogZG5zJyBsaW5lIGFib3ZlLCBhbmQgdW5jb21tZW50IHRoZQ0KICAgICAgICAgICAgICAjIGxpbmUgYmVsb3c6DQogICAgICAgICAgICAgICMgdmFsdWU6IGVudg0KICAgICAgICAgIHBvcnRzOg0KICAgICAgICAgICAgLSBuYW1lOiBodHRwLXNlcnZlcg0KICAgICAgICAgICAgICBjb250YWluZXJQb3J0OiAzMDAwDQo="}'
-        // response format: depends on accept type
+        // response format: JSON
         [HttpPost("deployment")]
         public async Task<V1Deployment> CreateOrUpdateDeployment(KubernetesCreateOrUpdateRequest request)
         {
@@ -103,7 +118,7 @@ namespace KubernetesApiSample.Controllers
         }
 
         // curl -X DELETE -H "Content-Type: application/json" localhost:5000/kubernetes/deployment -d '{"namespace": "default", "name": "frontend"}'
-        // response format: depends on accept type
+        // response format: JSON
         [HttpDelete("deployment")]
         public async Task<V1Status> DeleteDeployment(KubernetesDeleteRequest request)            
         {
@@ -131,6 +146,21 @@ namespace KubernetesApiSample.Controllers
                 .ToArray();
         }
 
+        // curl localhost:5000/kubernetes/jobs/watch?ns=default
+        // response format: JSON
+        [HttpGet("jobs/watch")]
+        public async Task<V1WatchEvent> WatchJobs(string ns, string resourceVersion = "")
+        {
+            _logger.LogInformation($"Watch jobs api. resourceVersion {resourceVersion}");
+            if (string.IsNullOrEmpty(resourceVersion))
+            {
+                var deployments = await _operations.GetDeploymentsAsync(ns);
+                resourceVersion = deployments.metadata.resourceVersion;
+            }
+            var res = await _operations.WatchJobsAsync(ns, resourceVersion);
+            return res;
+        }
+
         // curl "localhost:5000/kubernetes/job?ns=default&name=hoge"
         // response format: JSON
         [HttpGet("job")]
@@ -142,7 +172,7 @@ namespace KubernetesApiSample.Controllers
         }
 
         // curl -X POST -H "Content-Type: application/json" localhost:5000/kubernetes/job -d '{"namespace": "default", "body": "YXBpVmVyc2lvbjogYmF0Y2gvdjEKa2luZDogSm9iCm1ldGFkYXRhOgogIGxhYmVsczoKICAgIGFwcDogaG9nZQogIG5hbWU6IGhvZ2UKc3BlYzoKICBiYWNrb2ZmTGltaXQ6IDYKICBjb21wbGV0aW9uczogMQogIHBhcmFsbGVsaXNtOiAxCiAgdGVtcGxhdGU6CiAgICBtZXRhZGF0YToKICAgICAgbGFiZWxzOgogICAgICAgIGFwcDogaG9nZQogICAgc3BlYzoKICAgICAgY29udGFpbmVyczoKICAgICAgICAtIGltYWdlOiBob2dlCiAgICAgICAgICBpbWFnZVB1bGxQb2xpY3k6IEFsd2F5cwogICAgICAgICAgbmFtZTogaG9nZQogICAgICByZXN0YXJ0UG9saWN5OiBOZXZlcgo="}'
-        // response format: YAML
+        // response format: JSON
         [HttpPost("job")]
         public async Task<V1Job> CreateOrUpdateJob(KubernetesCreateOrUpdateRequest request)
         {
@@ -154,7 +184,7 @@ namespace KubernetesApiSample.Controllers
 
         // curl -X DELETE -H "Content-Type: application/json" localhost:5000/kubernetes/job -d '{"namespace": "default", "name": "hoge"}'
         // curl -X DELETE -H "Content-Type: application/json" localhost:5000/kubernetes/job -d '{"namespace": "default", "name": "hoge", "gracePeriodSeconds": 0}'
-        // response format: depends on accept type
+        // response format: JSON
         [HttpDelete("job")]
         public async Task<V1Job> DeleteJob(KubernetesDeleteRequest request)
         {
