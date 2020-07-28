@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using KubernetesClient;
 using KubernetesClient.Models;
@@ -81,7 +84,7 @@ namespace KubernetesApiSample.Controllers
                 .ToArray();
         }
 
-        // curl localhost:5000/kubernetesmanifest/deployments/watch?ns=default
+        // curl localhost:5000/kubernetes/deployments/watch?ns=default
         // response format: JSON
         [HttpGet("deployments/watch")]
         public async Task<V1WatchEvent> WatchDeployments(string ns, string resourceVersion = "")
@@ -94,6 +97,50 @@ namespace KubernetesApiSample.Controllers
             }
             var res = await _operations.WatchDeploymentsAsync(ns, resourceVersion);
             return res;
+        }
+
+        // curl localhost:5000/kubernetes/deployments/watch2?ns=default
+        // response format: JSON
+        [HttpGet("deployments/watch2")]
+        public async Task<V1Deployment[]> WatchDeployments2(string ns, string resourceVersion = "", TimeSpan? expire = default)
+        {
+            if (!expire.HasValue)
+                expire = TimeSpan.FromSeconds(60);
+            _logger.LogInformation($"Watch deployments api. auto cancel after {expire}");
+
+            var cts = new CancellationTokenSource(expire.Value);
+
+            if (string.IsNullOrEmpty(resourceVersion))
+            {
+                var deployments = await _operations.GetDeploymentsAsync(ns);
+                resourceVersion = deployments.metadata.resourceVersion;
+            }
+            int added = 0;
+            var result = new List<V1Deployment>();
+            //var res = _operations.WatchDeploymentsHttpAsync(ns, resourceVersion);
+            //using (var watch = res.Watch<V1Deployment, V1WatchEvent>((type, item, cts) =>
+            var res = _operations.GetDeploymentsHttpAsync(ns, true);
+            using (var watch = res.Watch<V1Deployment, V1DeploymentList>((type, item, cts) =>
+            {
+                _logger.LogInformation("Watch event");
+                _logger.LogInformation(type.ToString());
+                _logger.LogInformation(item.ToString());
+                if (type == WatchEventType.Added)
+                {
+                    added++;
+                    if (added >= 5)
+                    {
+                        cts.Cancel();
+                    }
+                    result.Add(item);
+                }
+            }, ex => _logger.LogCritical(ex, ex.Message), () => _logger.LogInformation("watch closed."), cts))
+            {
+                await watch.WatchLoop();
+            }
+
+            _logger.LogInformation($"return watch result, count {result.Count} names {string.Join(", ", result.Select(x => $"{x.metadata.@namespace}/{x.metadata.name}"))}");
+            return result.ToArray();
         }
 
         // curl "localhost:5000/kubernetes/deployment?ns=default&name=kubernetesapisample"
