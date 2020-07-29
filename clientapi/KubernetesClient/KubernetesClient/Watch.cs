@@ -70,8 +70,8 @@ namespace KubernetesClient
             OnEvent += onEvent;
             OnError += onError;
             OnClosed += onClosed;
-            
-            _cts = cts;
+
+            _cts = cts ?? new CancellationTokenSource();
         }
 
         public Watch(

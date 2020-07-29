@@ -78,7 +78,7 @@ namespace KubernetesClient
         public async ValueTask<string> GetOpenApiSpecAsync()
         {
             var apiPath = "/openapi/v2";
-            var res = await GetApiAsync(apiPath).ConfigureAwait(false);
+            var res = await GetApiAsync(apiPath, null).ConfigureAwait(false);
             return res.Content;
         }
 
@@ -90,11 +90,13 @@ namespace KubernetesClient
         /// <param name="apiPath"></param>
         /// <param name="acceptHeader"></param>
         /// <returns></returns>
-        private async ValueTask<HttpResponseWrapper> GetApiAsync(string apiPath, string acceptHeader = default)
+        private async ValueTask<HttpResponseWrapper> GetApiAsync(string apiPath, StringBuilder query, string acceptHeader = default)
         {
             using var httpClient = _provider.CreateHttpClient();
             SetAcceptHeader(httpClient, acceptHeader);
-            var request = new HttpRequestMessage(HttpMethod.Get, _provider.KubernetesServiceEndPoint + apiPath);
+            var url = new UriBuilder(_provider.KubernetesServiceEndPoint + apiPath);
+            SetQuery(url, query);
+            var request = new HttpRequestMessage(HttpMethod.Get, url.ToString());
             var res = await httpClient.SendAsync(request).ConfigureAwait(false);
             res.EnsureSuccessStatusCode();
             var responseContent = await res.Content.ReadAsStringAsync();
@@ -107,11 +109,13 @@ namespace KubernetesClient
         /// <param name="apiPath"></param>
         /// <param name="acceptHeader"></param>
         /// <returns></returns>
-        private async ValueTask<HttpResponseWrapper> GetStreamApiAsync(string apiPath, string acceptHeader = default, CancellationToken ct = default)
+        private async ValueTask<HttpResponseWrapper> GetStreamApiAsync(string apiPath, StringBuilder query, string acceptHeader = default, CancellationToken ct = default)
         {
             using var httpClient = _provider.CreateHttpClient();
             SetAcceptHeader(httpClient, acceptHeader);
-            var request = new HttpRequestMessage(HttpMethod.Get, _provider.KubernetesServiceEndPoint + apiPath);
+            var url = new UriBuilder(_provider.KubernetesServiceEndPoint + apiPath);
+            SetQuery(url, query);
+            var request = new HttpRequestMessage(HttpMethod.Get, url.ToString());
             var res = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
             res.EnsureSuccessStatusCode();
             var stream = await res.Content.ReadAsStreamAsync().ConfigureAwait(false);
@@ -128,12 +132,14 @@ namespace KubernetesClient
         /// <param name="bodyContenType"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async ValueTask<HttpResponseWrapper> PostApiAsync(string apiPath, string body, string bodyContenType = "application/yaml",  CancellationToken ct = default)
+        private async ValueTask<HttpResponseWrapper> PostApiAsync(string apiPath, StringBuilder query, string body, string bodyContenType = "application/yaml",  CancellationToken ct = default)
         {
             using var httpClient = _provider.CreateHttpClient();
             SetAcceptHeader(httpClient);
             var content = new StringContent(body, Encoding.UTF8, bodyContenType);
-            var res = await httpClient.PostAsync(_provider.KubernetesServiceEndPoint + apiPath, content, ct).ConfigureAwait(false);
+            var url = new UriBuilder(_provider.KubernetesServiceEndPoint + apiPath);
+            SetQuery(url, query);
+            var res = await httpClient.PostAsync(url.ToString(), content, ct).ConfigureAwait(false);
             res.EnsureSuccessStatusCode();
             var responseContent = await res.Content.ReadAsStringAsync().ConfigureAwait(false);
             return new HttpResponseWrapper(res, responseContent);
@@ -147,12 +153,14 @@ namespace KubernetesClient
         /// <param name="bodyContenType"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async ValueTask<HttpResponseWrapper> PutApiAsync(string apiPath, string body, string bodyContenType = "application/yaml", CancellationToken ct = default)
+        private async ValueTask<HttpResponseWrapper> PutApiAsync(string apiPath, StringBuilder query, string body, string bodyContenType = "application/yaml", CancellationToken ct = default)
         {
             using var httpClient = _provider.CreateHttpClient();
             SetAcceptHeader(httpClient);
             var content = new StringContent(body, Encoding.UTF8, bodyContenType);
-            var res = await httpClient.PutAsync(_provider.KubernetesServiceEndPoint + apiPath, content, ct).ConfigureAwait(false);
+            var url = new UriBuilder(_provider.KubernetesServiceEndPoint + apiPath);
+            SetQuery(url, query);
+            var res = await httpClient.PutAsync(url.ToString(), content, ct).ConfigureAwait(false);
             res.EnsureSuccessStatusCode();
             var responseContent = await res.Content.ReadAsStringAsync().ConfigureAwait(false);
             return new HttpResponseWrapper(res, responseContent);
@@ -164,11 +172,13 @@ namespace KubernetesClient
         /// <param name="apiPath"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async ValueTask<HttpResponseWrapper> DeleteApiAsync(string apiPath, CancellationToken ct = default)
+        private async ValueTask<HttpResponseWrapper> DeleteApiAsync(string apiPath, StringBuilder query, CancellationToken ct = default)
         {
             using var httpClient = _provider.CreateHttpClient();
             SetAcceptHeader(httpClient);
-            var res = await httpClient.DeleteAsync(_provider.KubernetesServiceEndPoint + apiPath, ct).ConfigureAwait(false);
+            var url = new UriBuilder(_provider.KubernetesServiceEndPoint + apiPath);
+            SetQuery(url, query);
+            var res = await httpClient.DeleteAsync(url.ToString(), ct).ConfigureAwait(false);
             res.EnsureSuccessStatusCode();
             var responseContent = await res.Content.ReadAsStringAsync().ConfigureAwait(false);
             return new HttpResponseWrapper(res, responseContent);
@@ -180,12 +190,14 @@ namespace KubernetesClient
         /// <param name="options"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async ValueTask<HttpResponseWrapper> DeleteApiAsync(string apiPath, V1DeleteOptions options, CancellationToken ct = default)
+        private async ValueTask<HttpResponseWrapper> DeleteApiAsync(string apiPath, StringBuilder query, V1DeleteOptions options, CancellationToken ct = default)
         {
             using var httpClient = _provider.CreateHttpClient();
             SetAcceptHeader(httpClient);
             var content = new StringContent(JsonConvert.Serialize(options), Encoding.UTF8, "application/json");
-            var request = new HttpRequestMessage(HttpMethod.Delete, _provider.KubernetesServiceEndPoint + apiPath)
+            var url = new UriBuilder(_provider.KubernetesServiceEndPoint + apiPath);
+            SetQuery(url, query);
+            var request = new HttpRequestMessage(HttpMethod.Delete, url.ToString())
             {
                 Content = content,
             };
@@ -253,6 +265,36 @@ namespace KubernetesClient
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(ResponseType));
+            }
+        }
+        /// <summary>
+        /// build query parameters
+        /// </summary>
+        /// <param name="sb"></param>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        private static void AddQueryParameter(StringBuilder sb, string key, string value)
+        {
+            if (sb == null)
+                throw new ArgumentNullException(nameof(sb));
+
+            if (string.IsNullOrEmpty(key))
+                throw new ArgumentNullException(nameof(key));
+
+            sb.Append(sb.Length != 0 ? '&' : '?').Append(Uri.EscapeDataString(key)).Append('=');
+            if (!string.IsNullOrEmpty(value))
+            {
+                sb.Append(Uri.EscapeDataString(value));
+            }
+        }
+        private static void SetQuery(UriBuilder uriBuilder, StringBuilder query)
+        {
+            if (query != null && query.Length > 0)
+            {
+                // UriBuilder.Query not accept leading '?', trim it.
+                uriBuilder.Query = query.Length == 0
+                    ? ""
+                    : query.ToString(1, query.Length - 1);
             }
         }
     }

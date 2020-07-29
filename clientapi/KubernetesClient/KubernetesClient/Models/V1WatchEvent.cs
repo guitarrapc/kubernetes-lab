@@ -1,8 +1,8 @@
 ﻿namespace KubernetesClient.Models
 {
-    public class V1WatchEvent
+    public class V1WatchEvent<T>
     {
-        public object @object { get; set; }
+        public T @object { get; set; }
         public string type { get; set; }
     }
 }
