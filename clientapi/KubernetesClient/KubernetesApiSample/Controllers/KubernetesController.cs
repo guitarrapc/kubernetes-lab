@@ -69,6 +69,116 @@ namespace KubernetesApiSample.Controllers
             return res;
         }
 
+        #region pods
+
+        // curl localhost:5000/kubernetes/pods
+        // curl localhost:5000/kubernetes/pods?ns=default
+        // response format: JSON
+        [HttpGet("pods")]
+        public async Task<string[]> GetPods(string ns = "")
+        {
+            _logger.LogInformation("Get pods api.");
+            var deployments = await _operations.GetPodsAsync(ns);
+            return deployments.items
+                .Select(item => $"{item.metadata.@namespace}/{item.metadata.name}")
+                .ToArray();
+        }
+
+        // curl localhost:5000/kubernetes/pods/watch?ns=default
+        // response format: JSON
+        [HttpGet("pods/watch")]
+        public async Task<V1WatchEvent> WatchPods(string ns, string resourceVersion = "")
+        {
+            _logger.LogInformation($"Watch pods api. resourceVersion {resourceVersion}");
+            if (string.IsNullOrEmpty(resourceVersion))
+            {
+                var deployments = await _operations.GetPodsAsync(ns);
+                resourceVersion = deployments.metadata.resourceVersion;
+            }
+            var res = await _operations.WatchDeploymentsAsync(ns, resourceVersion);
+            return res;
+        }
+
+        // curl localhost:5000/kubernetes/pods/watch2?ns=default
+        // response format: JSON
+        [HttpGet("pods/watch2")]
+        public async Task<V1Pod[]> WatchPods2(string ns, string resourceVersion = "", TimeSpan? expire = default)
+        {
+            if (!expire.HasValue)
+                expire = TimeSpan.FromSeconds(60);
+            _logger.LogInformation($"Watch pods api. auto cancel after {expire}");
+
+            var cts = new CancellationTokenSource(expire.Value);
+
+            if (string.IsNullOrEmpty(resourceVersion))
+            {
+                var deployments = await _operations.GetPodsAsync(ns);
+                resourceVersion = deployments.metadata.resourceVersion;
+            }
+            int added = 0;
+            var result = new List<V1Pod>();
+            var res = _operations.GetPodsHttpAsync(ns, true);
+            using (var watch = res.Watch<V1Pod, V1PodList>((type, item, cts) =>
+            {
+                _logger.LogInformation($"{type}, {item.metadata.@namespace}/{item.metadata.name}");
+                if (type == WatchEventType.Added)
+                {
+                    added++;
+                    if (added >= 5)
+                    {
+                        cts.Cancel();
+                    }
+                    result.Add(item);
+                }
+            },
+            ex =>
+            {
+                _logger.LogCritical(ex, ex.Message);
+                cts.Cancel();
+            }, () => _logger.LogInformation("watch closed."), cts))
+            {
+                await watch.Execute();
+            }
+
+            _logger.LogInformation($"return watch result, count {result.Count} names {string.Join(", ", result.Select(x => $"{x.metadata.@namespace}/{x.metadata.name}"))}");
+            return result.ToArray();
+        }
+
+        // curl "localhost:5000/kubernetes/pod?ns=default&name=kubernetesapisample"
+        // response format: JSON
+        [HttpGet("pod")]
+        public async Task<V1Pod> GetPod(string ns, string name)
+        {
+            _logger.LogInformation("Get pod api.");
+            var deployment = await _operations.GetPodAsync(ns, name);
+            return deployment;
+        }
+
+        // curl -X POST -H "Content-Type: application/json" localhost:5000/kubernetes/pod -d '{"namespace": "default", "body": "YXBpVmVyc2lvbjogdjEKa2luZDogUG9kCm1ldGFkYXRhOgogIG5hbWU6IGZyb250ZW5kCnNwZWM6CiAgY29udGFpbmVyczoKICAgIC0gbmFtZTogcGhwLXJlZGlzCiAgICAgIGltYWdlOiBrOHMuZ2NyLmlvL2d1ZXN0Ym9vazp2MwogICAgICByZXNvdXJjZXM6CiAgICAgICAgcmVxdWVzdHM6CiAgICAgICAgICBjcHU6IDEwMG0KICAgICAgICAgIG1lbW9yeTogMTAwTWkKICAgICAgICBsaW1pdHM6CiAgICAgICAgICBjcHU6IDIwMDBtCiAgICAgICAgICBtZW1vcnk6IDEwMDBNaQogICAgICBlbnY6CiAgICAgICAgLSBuYW1lOiBHRVRfSE9TVFNfRlJPTQogICAgICAgICAgdmFsdWU6IGRucwogICAgICAgICAgIyBJZiB5b3VyIGNsdXN0ZXIgY29uZmlnIGRvZXMgbm90IGluY2x1ZGUgYSBkbnMgc2VydmljZSwgdGhlbiB0bwogICAgICAgICAgIyBpbnN0ZWFkIGFjY2VzcyBlbnZpcm9ubWVudCB2YXJpYWJsZXMgdG8gZmluZCBzZXJ2aWNlIGhvc3QKICAgICAgICAgICMgaW5mbywgY29tbWVudCBvdXQgdGhlICd2YWx1ZTogZG5zJyBsaW5lIGFib3ZlLCBhbmQgdW5jb21tZW50IHRoZQogICAgICAgICAgIyBsaW5lIGJlbG93OgogICAgICAgICAgIyB2YWx1ZTogZW52CiAgICAgIHBvcnRzOgogICAgICAgIC0gbmFtZTogaHR0cC1zZXJ2ZXIKICAgICAgICAgIGNvbnRhaW5lclBvcnQ6IDMwMDAK"}'
+        // response format: JSON
+        [HttpPost("pod")]
+        public async Task<V1Pod> CreateOrUpdatePod(KubernetesCreateOrUpdateRequest request)
+        {
+            _logger.LogInformation($"Create or Replace pod api. namespace {request.NameSpace}, bodyContentType {request.BodyContentType}");
+            var decodedBody = Kubernetes.Base64ToString(request.Body);
+            var deployment = await _operations.CreateOrReplacePodAsync(request.NameSpace, decodedBody, request.BodyContentType);
+            return deployment;
+        }
+
+        // curl -X DELETE -H "Content-Type: application/json" localhost:5000/kubernetes/pod -d '{"namespace": "default", "name": "frontend"}'
+        // response format: JSON
+        [HttpDelete("pod")]
+        public async Task<V1Pod> DeletePod(KubernetesDeleteRequest request)
+        {
+            _logger.LogInformation($"Delete pod api. namespace {request.NameSpace}, name {request.Name}");
+            var options = request.GraceperiodSecond.HasValue
+                ? new V1DeleteOptions { gracePeriodSeconds = request.GraceperiodSecond.Value }
+                : null;
+            var status = await _operations.DeletePodAsync(request.NameSpace, request.Name, options);
+            return status;
+        }
+        #endregion
+
         #region deployments
 
         // curl localhost:5000/kubernetes/deployments
@@ -131,7 +241,8 @@ namespace KubernetesApiSample.Controllers
                     result.Add(item);
                 }
             },
-            ex => {
+            ex =>
+            {
                 _logger.LogCritical(ex, ex.Message);
                 cts.Cancel();
             }, () => _logger.LogInformation("watch closed."), cts))
