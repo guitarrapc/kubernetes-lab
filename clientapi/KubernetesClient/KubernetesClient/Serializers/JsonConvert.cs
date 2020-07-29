@@ -6,11 +6,19 @@ namespace KubernetesClient.Serializers
 {
     internal static class JsonConvert
     {
+        private static readonly JsonSerializerOptions defaultJsonSerializerOptions;
         private static readonly JsonSerializerOptions enumJsonSerializerOptions;
 
         static JsonConvert()
         {
-            enumJsonSerializerOptions = new JsonSerializerOptions();
+            defaultJsonSerializerOptions = new JsonSerializerOptions()
+            {
+                IgnoreNullValues = true,
+            };
+            enumJsonSerializerOptions = new JsonSerializerOptions()
+            {
+                IgnoreNullValues = true,
+            };
             enumJsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         }
 
@@ -23,6 +31,8 @@ namespace KubernetesClient.Serializers
         /// <returns></returns>
         public static TValue Deserialize<TValue>(ReadOnlySpan<byte> utf8Json, JsonSerializerOptions options = null)
         {
+            if (options == null)
+                options = defaultJsonSerializerOptions;
             return JsonSerializer.Deserialize<TValue>(utf8Json, options);
         }
         /// <summary>
@@ -33,6 +43,8 @@ namespace KubernetesClient.Serializers
         /// <returns></returns>
         public static TValue Deserialize<TValue>(string json, JsonSerializerOptions options = null)
         {
+            if (options == null)
+                options = defaultJsonSerializerOptions;
             return JsonSerializer.Deserialize<TValue>(json, options);
         }
         /// <summary>
@@ -43,6 +55,8 @@ namespace KubernetesClient.Serializers
         /// <returns></returns>
         public static TValue Deserialize<TValue>(ref Utf8JsonReader reader, JsonSerializerOptions options = null)
         {
+            if (options == null)
+                options = defaultJsonSerializerOptions;
             return JsonSerializer.Deserialize<TValue>(ref reader, options);
         }
 
@@ -85,9 +99,11 @@ namespace KubernetesClient.Serializers
         /// <typeparam name="TValue"></typeparam>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static string Serialize<TValue>(TValue value)
+        public static string Serialize<TValue>(TValue value, JsonSerializerOptions options = null)
         {
-            return JsonSerializer.Serialize<TValue>(value);
+            if (options == null)
+                options = defaultJsonSerializerOptions;
+            return JsonSerializer.Serialize<TValue>(value, options);
         }
         #endregion
     }
