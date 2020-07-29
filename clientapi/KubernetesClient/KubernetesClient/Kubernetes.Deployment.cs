@@ -49,6 +49,10 @@ namespace KubernetesClient
         {
             // build query
             var query = new StringBuilder();
+            if (watch)
+            {
+                AddQueryParameter(query, "watch", "true");
+            }
             if (!string.IsNullOrEmpty(labelSelectorParameter))
             {
                 AddQueryParameter(query, "labelSelector", labelSelectorParameter);
