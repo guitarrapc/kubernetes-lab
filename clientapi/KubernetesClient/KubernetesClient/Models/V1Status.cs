@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace KubernetesClient.Models
+﻿namespace KubernetesClient.Models
 {
     public class V1Status
     {

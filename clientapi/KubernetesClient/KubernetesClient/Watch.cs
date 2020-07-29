@@ -4,6 +4,7 @@ using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using KubernetesClient.Exceptions;
 using KubernetesClient.Models;
 using KubernetesClient.Responses;
 using KubernetesClient.Serializers;
@@ -38,7 +39,7 @@ namespace KubernetesClient
 
     public class Watch<T> : IDisposable
     {
-        private Func<Task<TextReader>> _streamReaderFactory;
+        private readonly Func<Task<TextReader>> _streamReaderFactory;
         private TextReader _streamReader;
 
         private readonly CancellationTokenSource _cts;
@@ -116,17 +117,21 @@ namespace KubernetesClient
                             OnError?.Invoke(exception);
                         }
                     }
+#pragma warning disable CA1031 // Do not catch general exception types
                     catch (Exception ex)
                     {
                         // deserialized failed or OnEvent throws
                         OnError?.Invoke(ex);
                     }
+#pragma warning restore CA1031 // Do not catch general exception types
                 }
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)
             {
                 OnError?.Invoke(ex);
             }
+#pragma warning restore CA1031 // Do not catch general exception types
             finally
             {
                 Watching = false;
@@ -152,7 +157,7 @@ namespace KubernetesClient
             return new Watch<T>(async () =>
             {
                 var response = await responseTask.ConfigureAwait(false);
-                if (!(response.Response.Content is WatcherDelegatingHandler.LineSeparatedHttpContent content))
+                if (!(response.Response.Content is Internals.WatcherDelegatingHandler.LineSeparatedHttpContent content))
                 {
                     throw new KubernetesException("request is not watchable.");
                 }
@@ -167,7 +172,7 @@ namespace KubernetesClient
             return new Watch<T>(async () =>
             {
                 var response = await responseTask.ConfigureAwait(false);
-                if (!(response.Response.Content is WatcherDelegatingHandler.LineSeparatedHttpContent content))
+                if (!(response.Response.Content is Internals.WatcherDelegatingHandler.LineSeparatedHttpContent content))
                 {
                     throw new KubernetesException("request is not watchable.");
                 }

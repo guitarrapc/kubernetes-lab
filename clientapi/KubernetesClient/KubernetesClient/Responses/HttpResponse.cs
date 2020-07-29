@@ -9,7 +9,7 @@ namespace KubernetesClient.Responses
 
         public void Dispose()
         {
-            Response?.Content?.Dispose();
+            Response?.Dispose();
         }
     }
 
@@ -36,22 +36,17 @@ namespace KubernetesClient.Responses
 
         public override bool Equals(object obj)
         {
-            throw new NotImplementedException();
+            return base.Equals(obj);
         }
 
         public override int GetHashCode()
         {
-            throw new NotImplementedException();
+            return base.GetHashCode();
         }
 
-        public static bool operator ==(HttpResponseWrapper left, HttpResponseWrapper right)
+        public override string ToString()
         {
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(HttpResponseWrapper left, HttpResponseWrapper right)
-        {
-            return !(left == right);
+            return base.ToString();
         }
     }
 }

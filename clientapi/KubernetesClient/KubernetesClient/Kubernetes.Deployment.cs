@@ -16,6 +16,28 @@ namespace KubernetesClient
             var res = await GetDeploymentsHttpAsync(ns, watch).ConfigureAwait(false);
             return res.Body;
         }
+        public async ValueTask<V1Deployment> GetDeploymentAsync(string ns, string name)
+        {
+            var res = await GetDeploymentHttpAsync(ns, name).ConfigureAwait(false);
+            return res.Body;
+        }
+        public async ValueTask<V1WatchEvent> WatchDeploymentsAsync(string ns, string resourceVersion)
+        {
+            var res = await WatchDeploymentsHttpAsync(ns, resourceVersion).ConfigureAwait(false);
+            return res.Body;
+        }
+        public async ValueTask<V1Deployment> CreateOrReplaceDeploymentAsync(string ns, string yaml, string contentType)
+        {
+            var res = await CreateOrReplaceDeploymentHttpAsync(ns, yaml, contentType).ConfigureAwait(false);
+            return res.Body;
+        }
+        public async Task<V1Status> DeleteDeploymentAsync(string ns, string name, V1DeleteOptions options)
+        {
+            var res = await DeleteDeploymentHttpAsync(ns, name, options).ConfigureAwait(false);
+            return res.Body;
+        }
+
+        #region http
         public async ValueTask<HttpResponse<V1DeploymentList>> GetDeploymentsHttpAsync(string ns, bool watch)
         {
             var url = string.IsNullOrEmpty(ns)
@@ -37,12 +59,6 @@ namespace KubernetesClient
                 Response = res.HttpResponseMessage,
             };
         }
-
-        public async ValueTask<V1Deployment> GetDeploymentAsync(string ns, string name)
-        {
-            var res = await GetDeploymentHttpAsync(ns, name).ConfigureAwait(false);
-            return res.Body;
-        }
         public async ValueTask<HttpResponse<V1Deployment>> GetDeploymentHttpAsync(string ns, string name)
         {
             var res = await GetApiAsync($"/apis/apps/v1/namespaces/{ns}/deployments/{name}").ConfigureAwait(false);
@@ -52,26 +68,14 @@ namespace KubernetesClient
                 Response = res.HttpResponseMessage,
             };
         }
-
-        public async ValueTask<V1WatchEvent> WatchDeploymentsAsync(string ns, string resourceVersion)
-        {
-            var res = await WatchDeploymentsHttpAsync(ns, resourceVersion).ConfigureAwait(false);
-            return res.Body;
-        }
         public async ValueTask<HttpResponse<V1WatchEvent>> WatchDeploymentsHttpAsync(string ns, string resourceVersion)
         {
-            var res = await GetStreamApiAsync($"/apis/apps/v1/namespaces/{ns}/deployments?watch=true&resourceVersion={resourceVersion}", "application/json").ConfigureAwait(false);
+            var res = await GetStreamApiAsync($"/apis/apps/v1/namespaces/{ns}/deployments?watch=true&resourceVersion={resourceVersion}").ConfigureAwait(false);
             var watch = JsonConvert.Deserialize<V1WatchEvent>(res.Content);
             return new HttpResponse<V1WatchEvent>(watch)
             {
                 Response = res.HttpResponseMessage,
             };
-        }
-
-        public async ValueTask<V1Deployment> CreateOrReplaceDeploymentAsync(string ns, string yaml, string contentType)
-        {
-            var res = await CreateOrReplaceDeploymentHttpAsync(ns, yaml, contentType).ConfigureAwait(false);
-            return res.Body;
         }
         public async ValueTask<HttpResponse<V1Deployment>> CreateOrReplaceDeploymentHttpAsync(string ns, string yaml, string contentType)
         {
@@ -102,12 +106,6 @@ namespace KubernetesClient
                 };
             }
         }
-
-        public async Task<V1Status> DeleteDeploymentAsync(string ns, string name, V1DeleteOptions options)
-        {
-            var res = await DeleteDeploymentHttpAsync(ns, name, options).ConfigureAwait(false);
-            return res.Body;
-        }
         public async Task<HttpResponse<V1Status>> DeleteDeploymentHttpAsync(string ns, string name, V1DeleteOptions options)
         {
             var res = options == null
@@ -119,5 +117,6 @@ namespace KubernetesClient
                 Response = res.HttpResponseMessage,
             };
         }
+        #endregion
     }
 }

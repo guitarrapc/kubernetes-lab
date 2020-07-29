@@ -6,7 +6,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace KubernetesClient
+namespace KubernetesClient.Internals
 {
     /// <summary>
     /// This HttpDelegatingHandler is to rewrite the response and return first line to autorest client
@@ -48,10 +48,8 @@ namespace KubernetesClient
 
             public override async Task FlushAsync(CancellationToken cancellationToken)
             {
-                using (var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken))
-                {
-                    await _innerStream.FlushAsync(cancellationTokenSource.Token).ConfigureAwait(false);
-                }
+                using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
+                await _innerStream.FlushAsync(cancellationTokenSource.Token).ConfigureAwait(false);
             }
 
             public override int Read(byte[] buffer, int offset, int count) =>
@@ -60,11 +58,9 @@ namespace KubernetesClient
             public override async Task<int> ReadAsync(byte[] buffer, int offset, int count,
                 CancellationToken cancellationToken)
             {
-                using (var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken))
-                {
-                    return await _innerStream.ReadAsync(buffer, offset, count, cancellationTokenSource.Token)
-                        .ConfigureAwait(false);
-                }
+                using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
+                return await _innerStream.ReadAsync(buffer, offset, count, cancellationTokenSource.Token)
+.ConfigureAwait(false);
             }
 
             public override long Seek(long offset, SeekOrigin origin) => _innerStream.Seek(offset, origin);
@@ -77,11 +73,9 @@ namespace KubernetesClient
             public override async Task WriteAsync(byte[] buffer, int offset, int count,
                 CancellationToken cancellationToken)
             {
-                using (var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken))
-                {
-                    await _innerStream.WriteAsync(buffer, offset, count, cancellationTokenSource.Token)
-                        .ConfigureAwait(false);
-                }
+                using var cancellationTokenSource = CreateCancellationTokenSource(cancellationToken);
+                await _innerStream.WriteAsync(buffer, offset, count, cancellationTokenSource.Token)
+.ConfigureAwait(false);
             }
 
             public override bool CanRead => _innerStream.CanRead;

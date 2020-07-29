@@ -9,7 +9,6 @@ using KubernetesClient.Models;
 using KubernetesClient.Responses;
 using KubernetesClient.Serializers;
 using LitJWT;
-using static KubernetesClient.WatcherDelegatingHandler;
 
 namespace KubernetesClient
 {
@@ -97,6 +96,7 @@ namespace KubernetesClient
             SetAcceptHeader(httpClient, acceptHeader);
             var request = new HttpRequestMessage(HttpMethod.Get, _provider.KubernetesServiceEndPoint + apiPath);
             var res = await httpClient.SendAsync(request).ConfigureAwait(false);
+            res.EnsureSuccessStatusCode();
             var responseContent = await res.Content.ReadAsStringAsync();
             return new HttpResponseWrapper(res, responseContent);
         }
@@ -113,8 +113,9 @@ namespace KubernetesClient
             SetAcceptHeader(httpClient, acceptHeader);
             var request = new HttpRequestMessage(HttpMethod.Get, _provider.KubernetesServiceEndPoint + apiPath);
             var res = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+            res.EnsureSuccessStatusCode();
             var stream = await res.Content.ReadAsStreamAsync().ConfigureAwait(false);
-            var reader = new PeekableStreamReader(new CancelableStream(stream, ct));
+            var reader = new Internals.WatcherDelegatingHandler.PeekableStreamReader(new Internals.WatcherDelegatingHandler.CancelableStream(stream, ct));
             var responseContent = await reader.ReadLineAsync().ConfigureAwait(false);
             return new HttpResponseWrapper(res, responseContent);
         }

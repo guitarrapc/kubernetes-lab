@@ -23,10 +23,8 @@ namespace KubernetesClient.Serializers
                 return reader.GetString();
             }
 
-            using (JsonDocument document = JsonDocument.ParseValue(ref reader))
-            {
-                return document.RootElement.Clone().ToString();
-            }
+            using JsonDocument document = JsonDocument.ParseValue(ref reader);
+            return document.RootElement.Clone().ToString();
         }
 
         public override void Write(Utf8JsonWriter writer, string value, JsonSerializerOptions options)
