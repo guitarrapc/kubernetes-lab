@@ -319,6 +319,51 @@ namespace KubernetesApiSample.Controllers
             return res;
         }
 
+        // curl localhost:5000/kubernetes/jobs/watch2?ns=default
+        // response format: JSON
+        [HttpGet("jobs/watch2")]
+        public async Task<V1Job[]> WatchJobs2(string ns, string resourceVersion = "", TimeSpan? expire = default)
+        {
+            if (!expire.HasValue)
+                expire = TimeSpan.FromSeconds(60);
+            _logger.LogInformation($"Watch jobs api. auto cancel after {expire}");
+
+            var cts = new CancellationTokenSource(expire.Value);
+
+            if (string.IsNullOrEmpty(resourceVersion))
+            {
+                var deployments = await _operations.GetJobsAsync(ns);
+                resourceVersion = deployments.metadata.resourceVersion;
+            }
+            int added = 0;
+            var result = new List<V1Job>();
+            var res = _operations.GetJobsHttpAsync(ns, true);
+            using (var watch = res.Watch<V1Job, V1JobList>((type, item, cts) =>
+            {
+                _logger.LogInformation($"{type}, {item.metadata.@namespace}/{item.metadata.name}");
+                if (type == WatchEventType.Added)
+                {
+                    added++;
+                    if (added >= 5)
+                    {
+                        cts.Cancel();
+                    }
+                    result.Add(item);
+                }
+            },
+            ex =>
+            {
+                _logger.LogCritical(ex, ex.Message);
+                cts.Cancel();
+            }, () => _logger.LogInformation("watch closed."), cts))
+            {
+                await watch.Execute();
+            }
+
+            _logger.LogInformation($"return watch result, count {result.Count} names {string.Join(", ", result.Select(x => $"{x.metadata.@namespace}/{x.metadata.name}"))}");
+            return result.ToArray();
+        }
+
         // curl "localhost:5000/kubernetes/job?ns=default&name=hoge"
         // response format: JSON
         [HttpGet("job")]
@@ -329,7 +374,7 @@ namespace KubernetesApiSample.Controllers
             return job;
         }
 
-        // curl -X POST -H "Content-Type: application/json" localhost:5000/kubernetes/job -d '{"namespace": "default", "body": "YXBpVmVyc2lvbjogYmF0Y2gvdjEKa2luZDogSm9iCm1ldGFkYXRhOgogIGxhYmVsczoKICAgIGFwcDogaG9nZQogIG5hbWU6IGhvZ2UKc3BlYzoKICBiYWNrb2ZmTGltaXQ6IDYKICBjb21wbGV0aW9uczogMQogIHBhcmFsbGVsaXNtOiAxCiAgdGVtcGxhdGU6CiAgICBtZXRhZGF0YToKICAgICAgbGFiZWxzOgogICAgICAgIGFwcDogaG9nZQogICAgc3BlYzoKICAgICAgY29udGFpbmVyczoKICAgICAgICAtIGltYWdlOiBob2dlCiAgICAgICAgICBpbWFnZVB1bGxQb2xpY3k6IEFsd2F5cwogICAgICAgICAgbmFtZTogaG9nZQogICAgICByZXN0YXJ0UG9saWN5OiBOZXZlcgo="}'
+        // curl -X POST -H "Content-Type: application/json" localhost:5000/kubernetes/job -d '{"namespace": "default", "body": "YXBpVmVyc2lvbjogYmF0Y2gvdjEKa2luZDogSm9iCm1ldGFkYXRhOgogIGxhYmVsczoKICAgIGFwcDogaG9nZQogIG5hbWU6IGhvZ2UKc3BlYzoKICBiYWNrb2ZmTGltaXQ6IDAKICBjb21wbGV0aW9uczogMwogIHBhcmFsbGVsaXNtOiAzCiAgdGVtcGxhdGU6CiAgICBtZXRhZGF0YToKICAgICAgbGFiZWxzOgogICAgICAgIGFwcDogaG9nZQogICAgc3BlYzoKICAgICAgY29udGFpbmVyczoKICAgICAgICAtIGltYWdlOiBob2dlCiAgICAgICAgICBpbWFnZVB1bGxQb2xpY3k6IEFsd2F5cwogICAgICAgICAgbmFtZTogaG9nZQogICAgICByZXN0YXJ0UG9saWN5OiBOZXZlcgo="}'
         // response format: JSON
         [HttpPost("job")]
         public async Task<V1Job> CreateOrUpdateJob(KubernetesCreateOrUpdateRequest request)

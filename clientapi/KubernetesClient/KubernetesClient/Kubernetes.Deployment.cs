@@ -38,7 +38,7 @@ namespace KubernetesClient
         }
 
         #region http
-        public async ValueTask<HttpResponse<V1DeploymentList>> GetDeploymentsHttpAsync(string ns, bool watch)
+        public async ValueTask<HttpResponse<V1DeploymentList>> GetDeploymentsHttpAsync(string ns = "", bool watch = false)
         {
             var url = string.IsNullOrEmpty(ns)
                 ? $"/apis/apps/v1/deployments"

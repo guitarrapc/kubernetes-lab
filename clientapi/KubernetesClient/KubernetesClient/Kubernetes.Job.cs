@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using KubernetesClient.Models;
 using KubernetesClient.Requests;
@@ -37,11 +38,21 @@ namespace KubernetesClient
         }
 
         #region http
-        public async ValueTask<HttpResponse<V1JobList>> GetJobsHttpAsync(string ns = "")
+        public async ValueTask<HttpResponse<V1JobList>> GetJobsHttpAsync(string ns = "", bool watch = false)
         {
-            var res = string.IsNullOrEmpty(ns)
-                ? await GetApiAsync($"/apis/batch/v1/jobs", "application/yaml").ConfigureAwait(false)
-                : await GetApiAsync($"/apis/batch/v1/namespaces/{ns}/jobs", "application/yaml").ConfigureAwait(false);
+            var url = string.IsNullOrEmpty(ns)
+                ? $"/apis/batch/v1/jobs"
+                : $"/apis/batch/v1/namespaces/{ns}/jobs";
+            var queryParameters = new List<string>();
+            if (watch)
+            {
+                queryParameters.Add($"watch=true");
+            }
+            if (queryParameters.Count > 0)
+            {
+                url += "?" + string.Join("&", queryParameters);
+            }
+            var res = await GetApiAsync(url).ConfigureAwait(false);
             var jobs = JsonConvert.Deserialize<V1JobList>(res.Content);
             return new HttpResponse<V1JobList>(jobs)
             {

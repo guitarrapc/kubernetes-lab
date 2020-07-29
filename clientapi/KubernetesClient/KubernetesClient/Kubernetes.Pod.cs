@@ -39,7 +39,7 @@ namespace KubernetesClient
         }
 
         #region http
-        public async ValueTask<HttpResponse<V1PodList>> GetPodsHttpAsync(string ns, bool watch)
+        public async ValueTask<HttpResponse<V1PodList>> GetPodsHttpAsync(string ns = "", bool watch = false)
         {
             var url = string.IsNullOrEmpty(ns)
                 ? $"/api/v1/pods"

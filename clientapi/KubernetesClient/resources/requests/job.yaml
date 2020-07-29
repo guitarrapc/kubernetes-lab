@@ -5,9 +5,9 @@ metadata:
     app: hoge
   name: hoge
 spec:
-  backoffLimit: 6
-  completions: 1
-  parallelism: 1
+  backoffLimit: 0
+  completions: 3
+  parallelism: 3
   template:
     metadata:
       labels:
