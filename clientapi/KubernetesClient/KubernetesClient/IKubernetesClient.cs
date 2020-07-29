@@ -81,6 +81,7 @@ namespace KubernetesClient
 
         public HttpClient CreateHttpClient()
         {
+            // stream support
             var handler = new Internals.WatcherDelegatingHandler
             {
                 InnerHandler = CreateDefaultHttpClientHandler()

@@ -158,7 +158,7 @@ namespace KubernetesClient
                 };
             }
         }
-        public async Task<HttpResponse<V1Status>> DeleteDeploymentHttpAsync(string ns, string name, V1DeleteOptions options, string labelSelectorParameter = null, int? timeoutSecondsParameter = null)
+        public async Task<HttpResponse<V1Status>> DeleteDeploymentHttpAsync(string ns, string name, V1DeleteOptions options = null, string labelSelectorParameter = null, int? timeoutSecondsParameter = null)
         {
             // build query
             var query = new StringBuilder();
@@ -171,9 +171,7 @@ namespace KubernetesClient
                 AddQueryParameter(query, "timeoutSeconds", timeoutSecondsParameter.Value.ToString());
             }
 
-            var res = options == null
-                ? await DeleteApiAsync($"/apis/apps/v1/namespaces/{ns}/deployments/{name}", query).ConfigureAwait(false)
-                : await DeleteApiAsync($"/apis/apps/v1/namespaces/{ns}/deployments/{name}", query, options).ConfigureAwait(false);
+            var res = await DeleteApiAsync($"/apis/apps/v1/namespaces/{ns}/deployments/{name}", query, options).ConfigureAwait(false);
             var status = JsonConvert.Deserialize<V1Status>(res.Content);
             return new HttpResponse<V1Status>(status)
             {
