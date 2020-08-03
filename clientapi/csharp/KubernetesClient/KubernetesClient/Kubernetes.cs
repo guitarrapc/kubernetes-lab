@@ -138,7 +138,7 @@ namespace KubernetesClient
         /// <param name="bodyContenType"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async ValueTask<HttpResponseWrapper> PostApiAsync(string apiPath, StringBuilder query, string body, string bodyContenType = "application/yaml",  CancellationToken ct = default)
+        private async ValueTask<HttpResponseWrapper> PostApiAsync(string apiPath, StringBuilder query, string body, string bodyContenType,  CancellationToken ct = default)
         {
             using var httpClient = _provider.CreateHttpClient();
             SetAcceptHeader(httpClient);
@@ -164,7 +164,7 @@ namespace KubernetesClient
         /// <param name="bodyContenType"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async ValueTask<HttpResponseWrapper> PutApiAsync(string apiPath, StringBuilder query, string body, string bodyContenType = "application/yaml", CancellationToken ct = default)
+        private async ValueTask<HttpResponseWrapper> PutApiAsync(string apiPath, StringBuilder query, string body, string bodyContenType, CancellationToken ct = default)
         {
             using var httpClient = _provider.CreateHttpClient();
             SetAcceptHeader(httpClient);
