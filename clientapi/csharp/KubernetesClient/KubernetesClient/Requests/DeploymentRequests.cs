@@ -27,9 +27,12 @@ namespace KubernetesClient.Requests
     }
     public class V1MetadataOnly
     {
-        public string apiVersion { get; set; }
-        public string kind { get; set; }
-        public V1ObjectMeta metadata { get; set; }
-        public object spec { get; set; }
+        [Required]
+        public string ApiVersion { get; set; }
+        [Required]
+        public string Kind { get; set; }
+        [Required]
+        public V1ObjectMeta Metadata { get; set; }
+        public object Spec { get; set; }
     }
 }

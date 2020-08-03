@@ -84,13 +84,13 @@ namespace KubernetesApiSample.Controllers
             if (watch)
             {
                 var deployments = await _operations.WatchPodsAsync(ns, "", labelSelector, timeoutSeconds);
-                return new[] { $"{deployments.type} {deployments.@object.metadata.@namespace}/{deployments.@object.metadata.name}" };
+                return new[] { $"{deployments.Type} {deployments.Object.Metadata.Namespace}/{deployments.Object.Metadata.Name}" };
             }
             else
             {
                 var deployments = await _operations.GetPodsAsync(ns, labelSelector, timeoutSeconds);
-                return deployments.items
-                    .Select(item => $"{item.metadata.@namespace}/{item.metadata.name}")
+                return deployments.Items
+                    .Select(item => $"{item.Metadata.Namespace}/{item.Metadata.Name}")
                     .ToArray();
             }
         }
@@ -119,14 +119,14 @@ namespace KubernetesApiSample.Controllers
             if (string.IsNullOrEmpty(resourceVersion))
             {
                 var deployments = await _operations.GetPodsAsync(ns, labelSelector, timeoutSeconds);
-                resourceVersion = deployments.metadata.resourceVersion;
+                resourceVersion = deployments.Metadata.ResourceVersion;
             }
             int added = 0;
             var result = new List<V1Pod>();
             var res = _operations.GetPodsHttpAsync(ns, true, labelSelector, timeoutSeconds);
             using (var watch = res.Watch<V1Pod, V1PodList>((type, item, cts) =>
             {
-                _logger.LogInformation($"{type}, {item.metadata.@namespace}/{item.metadata.name}");
+                _logger.LogInformation($"{type}, {item.Metadata.Namespace}/{item.Metadata.Name}");
                 if (type == WatchEventType.Added)
                 {
                     added++;
@@ -146,11 +146,11 @@ namespace KubernetesApiSample.Controllers
                 await watch.Execute();
             }
 
-            _logger.LogInformation($"return watch result, count {result.Count} names {string.Join(", ", result.Select(x => $"{x.metadata.@namespace}/{x.metadata.name}"))}");
+            _logger.LogInformation($"return watch result, count {result.Count} names {string.Join(", ", result.Select(x => $"{x.Metadata.Namespace}/{x.Metadata.Name}"))}");
             return result.ToArray();
         }
 
-        // curl "localhost:5000/kubernetes/pod?ns=default&name=kubernetesapisample"
+        // curl "localhost:5000/kubernetes/pod?ns=default&name=frontend"
         // response format: JSON
         [HttpGet("pod")]
         public async Task<V1Pod> GetPod(string ns, string name, string labelSelector = null, int? timeoutSeconds = null)
@@ -178,7 +178,7 @@ namespace KubernetesApiSample.Controllers
         {
             _logger.LogInformation($"Delete pod api. namespace {request.NameSpace}, name {request.Name}");
             var options = request.GraceperiodSecond.HasValue
-                ? new V1DeleteOptions { gracePeriodSeconds = request.GraceperiodSecond.Value }
+                ? new V1DeleteOptions { GracePeriodSeconds = request.GraceperiodSecond.Value }
                 : null;
             var status = await _operations.DeletePodAsync(request.NameSpace, request.Name, options, labelSelector, timeoutSeconds);
             return status;
@@ -195,8 +195,8 @@ namespace KubernetesApiSample.Controllers
         {
             _logger.LogInformation("Get deployments api.");
             var deployments = await _operations.GetDeploymentsAsync(ns);
-            return deployments.items
-                .Select(item => $"{item.metadata.@namespace}/{item.metadata.name}")
+            return deployments.Items
+                .Select(item => $"{item.Metadata.Namespace}/{item.Metadata.Name}")
                 .ToArray();
         }
 
@@ -224,14 +224,14 @@ namespace KubernetesApiSample.Controllers
             if (string.IsNullOrEmpty(resourceVersion))
             {
                 var deployments = await _operations.GetDeploymentsAsync(ns, labelSelector, timeoutSeconds);
-                resourceVersion = deployments.metadata.resourceVersion;
+                resourceVersion = deployments.Metadata.ResourceVersion;
             }
             int added = 0;
             var result = new List<V1Deployment>();
             var res = _operations.GetDeploymentsHttpAsync(ns, true, labelSelector, timeoutSeconds);
             using (var watch = res.Watch<V1Deployment, V1DeploymentList>((type, item, cts) =>
             {
-                _logger.LogInformation($"{type}, {item.metadata.@namespace}/{item.metadata.name}");
+                _logger.LogInformation($"{type}, {item.Metadata.Namespace}/{item.Metadata.Name}");
                 if (type == WatchEventType.Added)
                 {
                     added++;
@@ -251,7 +251,7 @@ namespace KubernetesApiSample.Controllers
                 await watch.Execute();
             }
 
-            _logger.LogInformation($"return watch result, count {result.Count} names {string.Join(", ", result.Select(x => $"{x.metadata.@namespace}/{x.metadata.name}"))}");
+            _logger.LogInformation($"return watch result, count {result.Count} names {string.Join(", ", result.Select(x => $"{x.Metadata.Namespace}/{x.Metadata.Name}"))}");
             return result.ToArray();
         }
 
@@ -283,7 +283,7 @@ namespace KubernetesApiSample.Controllers
         {
             _logger.LogInformation($"Delete deployment api. namespace {request.NameSpace}, name {request.Name}");
             var options = request.GraceperiodSecond.HasValue
-                ? new V1DeleteOptions { gracePeriodSeconds = request.GraceperiodSecond.Value }
+                ? new V1DeleteOptions { GracePeriodSeconds = request.GraceperiodSecond.Value }
                 : null;
             var status = await _operations.DeleteDeploymentAsync(request.NameSpace, request.Name, options, labelSelector, timeoutSeconds);
             return status;
@@ -300,8 +300,8 @@ namespace KubernetesApiSample.Controllers
         {
             _logger.LogInformation("Get jobs api.");
             var jobs = await _operations.GetJobsAsync(ns, labelSelector, timeoutSeconds);
-            return jobs.items
-                .Select(item => $"{item.metadata.@namespace}/{item.metadata.name}")
+            return jobs.Items
+                .Select(item => $"{item.Metadata.Namespace}/{item.Metadata.Name}")
                 .ToArray();
         }
 
@@ -329,14 +329,14 @@ namespace KubernetesApiSample.Controllers
             if (string.IsNullOrEmpty(resourceVersion))
             {
                 var deployments = await _operations.GetJobsAsync(ns, labelSelector, timeoutSeconds);
-                resourceVersion = deployments.metadata.resourceVersion;
+                resourceVersion = deployments.Metadata.ResourceVersion;
             }
             int added = 0;
             var result = new List<V1Job>();
             var res = _operations.GetJobsHttpAsync(ns, true, labelSelector, timeoutSeconds);
             using (var watch = res.Watch<V1Job, V1JobList>((type, item, cts) =>
             {
-                _logger.LogInformation($"{type}, {item.metadata.@namespace}/{item.metadata.name}");
+                _logger.LogInformation($"{type}, {item.Metadata.Namespace}/{item.Metadata.Name}");
                 if (type == WatchEventType.Added)
                 {
                     added++;
@@ -358,7 +358,7 @@ namespace KubernetesApiSample.Controllers
                 await watch.Execute();
             }
 
-            _logger.LogInformation($"return watch result, count {result.Count} names {string.Join(", ", result.Select(x => $"{x.metadata.@namespace}/{x.metadata.name}"))}");
+            _logger.LogInformation($"return watch result, count {result.Count} names {string.Join(", ", result.Select(x => $"{x.Metadata.Namespace}/{x.Metadata.Name}"))}");
             return result.ToArray();
         }
 
@@ -392,8 +392,8 @@ namespace KubernetesApiSample.Controllers
             _logger.LogInformation($"Delete job api. namespace {request.NameSpace}, name {request.Name}");
             var options = new V1DeleteOptions
             {
-                propagationPolicy = "Foreground",
-                gracePeriodSeconds = request.GraceperiodSecond,
+                PropagationPolicy = "Foreground",
+                GracePeriodSeconds = request.GraceperiodSecond,
             };
             var res = await _operations.DeleteJobAsync(request.NameSpace, request.Name, options, labelSelector, timeoutSeconds);
             return res;

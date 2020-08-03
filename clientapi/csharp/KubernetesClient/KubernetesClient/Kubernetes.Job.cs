@@ -8,6 +8,7 @@ using KubernetesClient.Requests;
 using KubernetesClient.Responses;
 using KubernetesClient.Serializers;
 using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace KubernetesClient
 {
@@ -28,7 +29,7 @@ namespace KubernetesClient
             if (string.IsNullOrEmpty(resourceVersion))
             {
                 var deployments = await GetDeploymentsAsync(ns);
-                resourceVersion = deployments.metadata.resourceVersion;
+                resourceVersion = deployments.Metadata.ResourceVersion;
             }
             using var res = await WatchJobsHttpAsync(ns, resourceVersion, labelSelectorParameter, timeoutSecondsParameter).ConfigureAwait(false);
             return res.Body;
@@ -85,7 +86,7 @@ namespace KubernetesClient
                 AddQueryParameter(query, "timeoutSeconds", timeoutSecondsParameter.Value.ToString());
             }
 
-            var res = await GetApiAsync($"/apis/batch/v1/namespaces/{ns}/jobs/{name}", query, "application/yaml").ConfigureAwait(false);
+            var res = await GetApiAsync($"/apis/batch/v1/namespaces/{ns}/jobs/{name}", query).ConfigureAwait(false);
             var job = JsonConvert.Deserialize<V1Job>(res.Content);
             return new HttpResponse<V1Job>(job)
             {
@@ -119,7 +120,9 @@ namespace KubernetesClient
         }
         public async ValueTask<HttpResponse<V1Job>> CreateOrReplaceJobHttpAsync(string ns, string yaml, string contentType, string labelSelectorParameter = null, int? timeoutSecondsParameter = null)
         {
-            var yamlDeserializer = new DeserializerBuilder().Build();
+            var yamlDeserializer = new DeserializerBuilder()
+                .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                .Build();
             var request = yamlDeserializer.Deserialize<V1MetadataOnly>(yaml);
 
             // build query
@@ -137,10 +140,10 @@ namespace KubernetesClient
             var currentJobsRes = await GetApiAsync($"/apis/batch/v1/namespaces/{ns}/jobs", query);
             var current = JsonConvert.Deserialize<V1JobList>(currentJobsRes.Content);
 
-            if (current.items.Any(x => x.metadata.name == request.metadata.name))
+            if (current.Items.Any(x => x.Metadata.Name == request.Metadata.Name))
             {
                 // replace
-                var res = await PutApiAsync($"/apis/batch/v1/namespaces/{ns}/jobs/{request.metadata.name}", query, yaml, contentType).ConfigureAwait(false);
+                var res = await PutApiAsync($"/apis/batch/v1/namespaces/{ns}/jobs/{request.Metadata.Name}", query, yaml, contentType).ConfigureAwait(false);
                 var job = JsonConvert.Deserialize<V1Job>(res.Content);
                 return new HttpResponse<V1Job>(job)
                 {

@@ -6,7 +6,7 @@ namespace KubernetesClient.Models
 {
     public class V1NamespaceStatus
     {
-        public IList<V1NamespaceCondition> conditions { get; set; }
-        public string phase { get; set; }
+        public IList<V1NamespaceCondition> Conditions { get; set; }
+        public string Phase { get; set; }
     }
 }
