@@ -1,0 +1,35 @@
+## Kubernetes API Swagger
+
+v16.6
+
+> https://app.swaggerhub.com/apis/guitarrapc/kubernetes/v1.16.6#/apps_v1/deleteAppsV1NamespacedDeployment
+
+
+## Local Dev
+
+use okteto.
+
+```shell
+scoop install okteto
+```
+
+launch app on local kubernetes
+
+```shell
+okteto up
+```
+
+send request to your api, see url for controller api.
+
+stop your local app on kubernetes.
+
+```shell
+okteto down
+```
+
+## watch sample
+
+
+
+
+curl -H 'Autorization: Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IlJBa3FwZmZZSTJUMlFWZF93U0RGQ0l4LTZSSmtxVkNOXzdQYmdBVFE4elEifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZnJhbWUiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlY3JldC5uYW1lIjoiZGVmYXVsdC10b2tlbi1ydjRtNyIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiNTRkNWE3N2QtOTQ4Ni00OTUzLTk1M2ItYWE0Y2M1MWRkYzA3Iiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OmRmcmFtZTpkZWZhdWx0In0.YgYLYYefLZrl7oe5J9SwSXrHdeUMIFPGJmsyIRePHtOA63DMAPQTEC_PGbiOIH9cJg9HA72ZxIZ2OsNwYufy7HreeUdR8QW5LAK0GYmEG7XMLe1LInRM_I8APComjoS5JzS6_nD6pIlt2Nss2jZetkxWd0hH2sTb1Q56rxQobC_iGr4Yogre5WHNTFFpdzOUv_9aF7ZCsZkRm_ADqnyvykQnTgRVtCqBTVDSpYIPiXfBIZrJpxiZeYEZBOX5aVvmFbT7APYB4bUFhke0Dbj1BU6haSzMgVeqDoIQQHoaI6Zm4RTXn-U2Jyoh2RdkttgY3zqu29RMv3R9af8QqotioQ' -k https://10.96.0.1:443/apis/apps/v1/namespaces/dframe/deployments

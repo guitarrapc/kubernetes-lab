@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app: hoge
+  name: hoge
+spec:
+  backoffLimit: 0
+  completions: 3
+  parallelism: 3
+  template:
+    metadata:
+      labels:
+        app: hoge
+    spec:
+      containers:
+        - image: hoge
+          imagePullPolicy: Always
+          name: hoge
+      restartPolicy: Never

@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "KubernetesClient": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    },
+    "Azure Dev Spaces": {
+      "commandName": "AzureDevSpaces"
+    }
+  }
+}

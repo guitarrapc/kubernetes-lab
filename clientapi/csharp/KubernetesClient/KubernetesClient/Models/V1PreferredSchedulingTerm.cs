@@ -1,0 +1,8 @@
+﻿namespace KubernetesClient.Models
+{
+    public class V1PreferredSchedulingTerm
+    {
+        public V1NodeSelectorTerm Preference { get; set; }
+        public int Weight { get; set; }
+    }
+}

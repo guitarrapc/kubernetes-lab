@@ -1,0 +1,8 @@
+﻿namespace KubernetesClient.Models
+{
+    public class V1WeightedPodAffinityTerm
+    {
+        public V1PodAffinityTerm PodAffinityTerm { get; set; }
+        public int Weight { get; set; }
+    }
+}

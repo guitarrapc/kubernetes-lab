@@ -1,0 +1,11 @@
+name: kubernetesapisample
+image: okteto/dotnetcore:3
+environment:
+  - ASPNETCORE_ENVIRONMENT=Development
+command: ["dotnet", "watch", "--project", "KubernetesApiSample", "run"]
+workdir: /src
+forward:
+  - 5000:5000
+persistentVolume:
+  enabled: true
+remote: 22000
