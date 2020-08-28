@@ -1,0 +1,15 @@
+alertmanager:
+  enabled: true
+  persistentVolume:
+    storageClass: gp2
+kubeStateMetrics:
+  enabled: true
+nodeExporter:
+  enabled: true
+pushgateway:
+  enabled: false
+server:
+  enabled: true
+  persistentVolume:
+    storageClass: gp2
+  replicaCount: 1

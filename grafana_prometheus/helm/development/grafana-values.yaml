@@ -1,0 +1,46 @@
+persistence:
+  storageClassName: gp2
+
+# NOTICE: ingress definition will separate to ingress.yaml. this offers consolidate all monitoring to single alb.
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://prometheus-server.monitoring.svc.cluster.local
+        access: proxy
+        isDefault: true
+
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+      - name: "default"
+        orgId: 1
+        folder: ""
+        type: file
+        disableDeletion: true
+        editable: false
+        options:
+          path: /var/lib/grafana/dashboards
+
+dashboards:
+  default:
+    kube-capacity:
+      gnetId: 5228
+      revision: 6
+      datasource: Prometheus
+    node-exporter-full:
+      gnetId: 1860
+      revision: 21
+      datasource: Prometheus
+    k8s-control-plane:
+      gnetId: 10907
+      revision: 1
+      datasource: Prometheus
+
+sidecar:
+  dashboards:
+    enabled: true

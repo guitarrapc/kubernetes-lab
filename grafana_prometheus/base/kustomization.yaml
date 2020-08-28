@@ -1,0 +1,5 @@
+resources:
+  - namespace.yaml
+  - configmap-ds1.yaml
+  - configmap-ds2.yaml
+  - configmap-ds3.yaml
