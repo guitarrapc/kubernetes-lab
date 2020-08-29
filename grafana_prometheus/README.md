@@ -7,17 +7,7 @@ Prometheus + Grafana basics.
 **TIPS: add Grafana dashboard json**
 
 * add Grafana dashboard definition json to `./base/`.
-* run following script will generate configmap for each json.
-
-```shell
-./base/gen-configmap-dashboards.sh
-```
-
-* add configmap to kustomization.yaml.
-
-```shell
-code ./base/kustomization.yaml
-```
+* add file reference to configmapGenerator in kustomization.yaml.
 
 **namespace & ingress & configmap**
 

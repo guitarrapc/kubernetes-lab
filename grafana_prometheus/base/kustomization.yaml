@@ -1,5 +1,14 @@
 resources:
   - namespace.yaml
-  - configmap-ds1.yaml
-  - configmap-ds2.yaml
-  - configmap-ds3.yaml
+
+configMapGenerator:
+  - name: grafana-dashboard-kubernetes
+    files:
+      - ./kubernetes-cluster-overview.json
+      - ./kubernetes-deployment-statefulset-daemonset-metrics.json
+      - ./kubernetes-status.json
+
+generatorOptions:
+  disableNameSuffixHash: true
+  labels:
+    grafana_dashboard: "1"
