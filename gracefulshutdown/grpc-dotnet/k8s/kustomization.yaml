@@ -1,0 +1,5 @@
+namespace: test-app
+resources:
+  - deployment.yaml
+  - namespace.yaml
+  - service.yaml

@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcService";
+
+package connect;
+
+// The greeting service definition.
+service Connector {
+  rpc Subscribe (stream ActionMessage) returns (stream UpdateMessage);
+}
+
+message ActionMessage {
+  string name = 1;
+}
+
+message UpdateMessage {
+  string message = 1;
+}
