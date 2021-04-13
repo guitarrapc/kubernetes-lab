@@ -1,0 +1,25 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nginx
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/actions.forward-rule-spot1: >
+      {"type":"forward","forwardConfig":{"targetGroups":[{"serviceName": "nginx-service", "servicePort": "80"}]}}
+    alb.ingress.kubernetes.io/conditions.forward-rule-spot1: >
+      [{"field":"source-ip","sourceIpConfig":{"values":["8.8.8.8/32", "8.8.4.4/32"]}}]
+    alb.ingress.kubernetes.io/actions.fixed-rule: >
+      {"type":"fixed-response","fixedResponseConfig":{"contentType":"text/plain","statusCode":"404","messageBody":"Page not found"}}
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /
+            backend:
+              serviceName: forward-rule-spot1
+              servicePort: use-annotation
+          - path: /
+            backend:
+              serviceName: fixed-rule
+              servicePort: use-annotation

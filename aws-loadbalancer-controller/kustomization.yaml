@@ -1,0 +1,6 @@
+namespace: nginx-sample
+resources:
+  - deployment.yaml
+  - ingress.yaml
+  - namespace.yaml
+  - service.yaml
