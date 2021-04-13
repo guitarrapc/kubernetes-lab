@@ -1,0 +1,5 @@
+namespace: monitoring
+bases:
+  - ../../base
+resources:
+  - ingress.yaml
