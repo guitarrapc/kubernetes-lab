@@ -1,0 +1,11 @@
+namespace: kuberneteslab-headless
+
+resources:
+  - deployment.yaml
+  - namespace.yaml
+  - service.yaml
+
+configMapGenerator:
+  - name: envoy-conf
+    files:
+      - ./config/envoy.yaml

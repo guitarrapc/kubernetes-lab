@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  annotations:
+    kubectl.kubernetes.io/default-container: nginx
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:latest
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "128m"
+          ports:
+            - name: http
+              containerPort: 80
+          readinessProbe:
+            httpGet:
+              scheme: HTTP
+              port: 80
+            initialDelaySeconds: 3
+          livenessProbe:
+            httpGet:
+              scheme: HTTP
+              port: 80
+            initialDelaySeconds: 10
+        - name: netshoot
+          image: nicolaka/netshoot
+          command: ["/bin/bash"]
+          args: ["-c", "while true; do ping localhost; sleep 60;done"]
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "128m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: envoy
+  annotations:
+    kubectl.kubernetes.io/default-container: envoy
+spec:
+  selector:
+    matchLabels:
+      app: envoy
+  template:
+    metadata:
+      labels:
+        app: envoy
+    spec:
+      containers:
+        - name: envoy
+          image: envoyproxy/envoy:v1.20.6
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "128m"
+          ports:
+            - name: http
+              containerPort: 80
+            - name: admin
+              containerPort: 9901
+          # readinessProbe:
+          #   httpGet:
+          #     scheme: HTTP
+          #     path: /healthz
+          #     httpHeaders:
+          #       - name: x-envoy-livenessprobe
+          #         value: healthz
+          #     port: 9901
+          #   initialDelaySeconds: 3
+          # livenessProbe:
+          #   httpGet:
+          #     scheme: HTTP
+          #     path: /healthz
+          #     httpHeaders:
+          #       - name: x-envoy-livenessprobe
+          #         value: healthz
+          #     port: 9901
+          #   initialDelaySeconds: 10
+          volumeMounts:
+            - name: config
+              mountPath: /etc/envoy
+        - name: netshoot
+          image: nicolaka/netshoot
+          command: ["/bin/bash"]
+          args: ["-c", "while true; do ping localhost; sleep 60;done"]
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "128m"
+      volumes:
+        - name: config
+          configMap:
+            name: envoy-conf
