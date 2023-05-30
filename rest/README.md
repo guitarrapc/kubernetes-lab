@@ -1,6 +1,6 @@
-## TL;DR
+## README
 
-Call Kubernetes REST API from inside pod.
+Call Kubernetes REST API from in-cluster pod.
 
 ## Access to specific namespace via Role and RoleBinding
 
@@ -126,4 +126,3 @@ rules:
 ## REF
 
 > [Kubernetes: RBACの設定におけるAPIリソース \- Qiita](https://qiita.com/tkusumi/items/300c566a74b6b64e7e89)
-

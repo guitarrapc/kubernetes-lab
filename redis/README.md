@@ -1,6 +1,6 @@
-## Redis and RedisInsight on container
+## README
 
-This describe 2 container orchestration deployment, docker-compose and kubernetes.
+This resource deploy Redis and RedisInsight to kubernetes.
 
 ![image](https://user-images.githubusercontent.com/3856350/76840074-ef19d300-6879-11ea-987c-626fef43a3e9.png)
 

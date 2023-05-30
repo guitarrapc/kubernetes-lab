@@ -1,5 +1,4 @@
-Pripod
----
+## REAMDE
 
 [Pripod](https://github.com/mayuki/Pripod) is .NET Core app to obtain Kubernetes Pod and OwnerReferences.
 This allows you to obtain Kubernetes info from your C# app and use for any telemetry.

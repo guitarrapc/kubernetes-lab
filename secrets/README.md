@@ -1,6 +1,8 @@
-## secrets management
+## README
 
-Use [sops](https://github.com/mozilla/sops) or [kubesec](https://github.com/shyiko/kubesec) to encrypt secrets and commit it to git.
+> TODO: add SecretsOeprator, Secrets Store CSI Driver
+
+This example show [sops](https://github.com/mozilla/sops), [kubesec](https://github.com/shyiko/kubesec) to encrypt secrets and commit it to git.
 
 Both use AWS KMS or any Cloud HSM for key.
 
@@ -27,9 +29,9 @@ creation_rules:
 
 ```shell
 # generate
-sops ./overlay/development/secrets/notexists.enc.yaml 
+sops ./overlay/development/secrets/notexists.enc.yaml
 # edit
-sops ./overlay/development/secrets/secrets.enc.yaml 
+sops ./overlay/development/secrets/secrets.enc.yaml
 # encrypt
 sops -e ./overlay/development/secrets/secrets.yaml > ./overlay/development/secrets/secrets.enc.yaml
 # decrypt

@@ -1,4 +1,4 @@
-## Graceful shutdown
+## README
 
 This show how to gracefully shutdown pods.
 

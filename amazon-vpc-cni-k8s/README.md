@@ -1,3 +1,6 @@
+## README
+
+Use EKS Addon.
 
 ## Restriction
 
@@ -8,4 +11,3 @@
 
 > * [calico](https://github.com/projectcalico/calico)
 > * [EKSでCalicoを使ってみた［1\.インストール編］｜SHIFT Group｜note](https://note.com/shift_tech/n/n0d4409bc7d08)
-

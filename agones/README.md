@@ -1,3 +1,5 @@
+## README
+
 ## Setting up Agones cluster on EKS
 
 > REF: https://agones.dev/site/docs/installation/
@@ -337,7 +339,7 @@ Events:
   Type    Reason            Age    From                        Message
   ----    ------            ----   ----                        -------
   Normal  AutoScalingFleet  8m12s  fleetautoscaler-controller  Scaling fleet simple-udp from 0 to 2
-  Normal  AutoScalingFleet  49s    fleetautoscaler-controller  Scaling fleet simple-udp from 2 to 
+  Normal  AutoScalingFleet  49s    fleetautoscaler-controller  Scaling fleet simple-udp from 2 to
 ```
 
 ```
@@ -504,7 +506,7 @@ $ nc -u 13.231.213.229 7173
 EXIT
 
 $ nc -u 13.231.213.229 7059
-EXIT 
+EXIT
 ```
 
 you may find scaled down event on fleet.

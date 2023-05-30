@@ -1,3 +1,5 @@
+## README
+
 local
 
 ```shell
@@ -10,4 +12,3 @@ kubectl delete pv/xxxx
 kubectl delete pvc/xxxx
 kubectl kustomize ./simple/base/ | kubectl delete -f -
 ```
-
