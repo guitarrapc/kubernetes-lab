@@ -2,9 +2,9 @@
 
 HPA is standard API resource, so you don't need install it. However HPA requires Metrics Server.
 
-## Metrics Server
+## Install Metrics Server
 
-## Docker Desktop
+### Docker Desktop
 
     **helm chart**
 
@@ -33,9 +33,11 @@ HPA is standard API resource, so you don't need install it. However HPA requires
     kubectl get deployment metrics-server -n kube-system
     ```
 
-### HPA
+## Deploy HPA
 
-Run PHP Server.
+Run PHP Server with cli or yaml manifest.
+
+CLI.
 
 ```sh
 kubens default
@@ -43,6 +45,18 @@ kubectl apply -f https://k8s.io/examples/application/php-apache.yaml
 kubectl autoscale deployment php-apache --cpu-percent=50 --min=1 --max=10
 kubectl get hpa
 ```
+
+yaml manifest.
+
+```sh
+kubens default
+curl -Lso ./hpa/php-apache.yaml https://k8s.io/examples/application/php-apache.yaml
+kubectl apply -f hpa/php-apache.yaml
+kubectl apply -f hpa/php-apache-hpa.yaml
+kubectl get hpa
+```
+
+## Monitor HPA working
 
 Watch PHP Server status
 
@@ -128,4 +142,12 @@ docker-desktop   php-apache-5b56f9df94-864nf   200m (2%)      500m (6%)     97m 
 docker-desktop   php-apache-5b56f9df94-mlr7g   200m (2%)      500m (6%)     49m (0%)    0Mi (0%)          0Mi (0%)        12Mi (0%)
 docker-desktop   php-apache-5b56f9df94-rz5f2   200m (2%)      500m (6%)     121m (1%)   0Mi (0%)          0Mi (0%)        12Mi (0%)
 docker-desktop   php-apache-5b56f9df94-tgsx8   200m (2%)      500m (6%)     135m (1%)   0Mi (0%)          0Mi (0%)        12Mi (0%)
+```
+
+## Clean up
+
+Clean up resources.
+
+```sh
+kubectl delete deployment.apps/php-apache service/php-apache horizontalpodautoscaler.autoscaling/php-apache
 ```
