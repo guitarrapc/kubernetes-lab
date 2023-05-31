@@ -1,0 +1,25 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: httpbin
+spec:
+  maxReplicas: 12
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: httpbin
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          averageUtilization: 60
+          type: Utilization
+  behavior:
+    scaleDown: # scale down gradually every 30sec with 20%
+      stabilizationWindowSeconds: 30 # default 300sec == 5min
+      policies:
+        - type: Percent
+          value: 20
+          periodSeconds: 60
