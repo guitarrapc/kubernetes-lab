@@ -43,29 +43,29 @@ HPA requires `Metrics Server`. Please follow instruction to install Metrics Serv
 
 ### Docker Desktop
 
-    **helm chart**
+ **helm chart**
 
-    ```sh
-    helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
-    helm upgrade --install metrics-server metrics-server/metrics-server --version 3.10.0 -f ./hpa/values-metrics-server-dockerdesktop.yaml -n kube-system --wait
-    kubectl get deployment metrics-server -n kube-system
-    ```
+ ```sh
+ helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
+ helm upgrade --install metrics-server metrics-server/metrics-server --version 3.10.0 -f ./hpa/values-metrics-server-dockerdesktop.yaml -n kube-system --wait
+ kubectl get deployment metrics-server -n kube-system
+ ```
 
 ### EKS
 
 > see: https://docs.aws.amazon.com/ja_jp/eks/latest/userguide/metrics-server.html
 
-    **helm chart**
+ **helm chart**
 
-    ```sh
-    helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
-    helm upgrade --install metrics-server metrics-server/metrics-server --version 3.10.0 -f ./hpa/values-metrics-server-eks.yaml -n kube-system --wait
-    kubectl get deployment metrics-server -n kube-system
-    ```
+ ```sh
+ helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
+ helm upgrade --install metrics-server metrics-server/metrics-server --version 3.10.0 -f ./hpa/values-metrics-server-eks.yaml -n kube-system --wait
+ kubectl get deployment metrics-server -n kube-system
+ ```
 
-    **Manifest**
+ **Manifest**
 
-    ```sh
-    kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-    kubectl get deployment metrics-server -n kube-system
-    ```
+ ```sh
+ kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+ kubectl get deployment metrics-server -n kube-system
+ ```
