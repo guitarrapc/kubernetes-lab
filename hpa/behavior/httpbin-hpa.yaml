@@ -18,7 +18,7 @@ spec:
           type: Utilization
   behavior:
     scaleDown: # scale down gradually every 30sec with 20%
-      stabilizationWindowSeconds: 30 # default 300sec == 5min
+      stabilizationWindowSeconds: 60 # default 300sec. Shorten window seconds may result to unstable pod number of scaling.
       policies:
         - type: Percent
           value: 20
