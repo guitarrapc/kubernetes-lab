@@ -8,24 +8,24 @@ Customized HPA behavior works as follows.
 
 ```mermaid
 flowchart TD
-start[Start]
-desired["Calculate Desired Replicas (15s interval)"]
-check[Check]
-scaleout[Scale Out]
-stabilization[1min Later]
-scalein["Scale In (20%)"]
+    start[Start]
+    desired["Calculate Desired Replicas (15s interval)"]
+    check[Check]
+    scaleout[Scale Out]
+    stabilization[1min Later]
+    scalein["Scale In (20%)"]
 
-start --> desired
-desired-->check
+    start --> desired
+    desired-->check
 
-check--chrrent = desired-->desired
-check--chrrent < desired-->scaleout
-check--chrrent < desired-->stabilization
+    check--chrrent = desired-->desired
+    check--chrrent < desired-->scaleout
+    check--chrrent < desired-->stabilization
 
-scaleout---->desired
-stabilization--yes-->scalein
-stabilization--no-->check
-scalein-->check
+    scaleout---->desired
+    stabilization--yes-->scalein
+    stabilization--no-->check
+    scalein-->check
 ```
 
 ## Deploy HPA

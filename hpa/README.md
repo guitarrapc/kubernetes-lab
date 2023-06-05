@@ -17,24 +17,24 @@ Default HPA flowchart is follows. You can customize this flow with `spec.behavio
 
 ```mermaid
 flowchart TD
-start[Start]
-desired["Calculate Desired Replicas (15s interval)"]
-check[Check]
-scaleout[Scale Out]
-stabilization[5min Later]
-scalein[Scale In]
+    start[Start]
+    desired["Calculate Desired Replicas (15s interval)"]
+    check[Check]
+    scaleout[Scale Out]
+    stabilization[5min Later]
+    scalein[Scale In]
 
-start --> desired
-desired-->check
+    start --> desired
+    desired-->check
 
-check--chrrent = desired-->desired
-check--chrrent < desired-->scaleout
-check--chrrent < desired-->stabilization
+    check--chrrent = desired-->desired
+    check--chrrent < desired-->scaleout
+    check--chrrent < desired-->stabilization
 
-scaleout---->desired
-stabilization--yes-->scalein
-stabilization--no-->check
-scalein-->check
+    scaleout---->desired
+    stabilization--yes-->scalein
+    stabilization--no-->check
+    scalein-->check
 ```
 
 ## Getting Started HPA
