@@ -11,7 +11,60 @@ HPA is standard API resource, so you don't need install it. However HPA requires
 * [Metrics Server](https://speakerdeck.com/bells17/metrics-server)
 * [結局requestsとlimitsはどう設定すればいいのか](https://speakerdeck.com/nao_saino/jie-ju-requeststolimitshadoushe-ding-surebaiifalseka)
 
-## Recomendation
+## Basic knowldge
+
+### Metrics can be used for HPA
+
+* Resource Metrics generated via Pod `PodResource`
+  * CPU
+  * Memory
+
+  ```yaml
+  - type: PodResource
+    resource:
+      name: cpu
+      container: application
+      target:
+        type: Utilization
+        averageUtilization: 60
+    ```
+
+* Resource Metrics generated via Container `ContainerResource`
+  * CPU
+  * Memory
+
+  ```yaml
+  - type: ContainerResource
+    resource:
+      name: cpu
+      container: application
+      target:
+        type: Utilization
+        averageUtilization: 60
+    ```
+
+* Custom Metrics from Kubernetes object `Object`
+  * Ingress rps
+  * etc... Kubernetes object related metrics.
+
+* External Metrics from Non Kubernetes object `External`
+  * Prometheus
+  * Stackdriver
+  * Datadog
+  * NewRelic
+  * etc... Non Kubernetes object related glocal metrics.
+
+    ```yaml
+    - type: External
+        external:
+        metricName: redis.key.length
+        metricSelector:
+          matchLabels:
+            key: celery
+        targetAverageValue: 4
+    ```
+
+### Recomendation
 
 the HorizontalPodAutoscaler controller operates on the ratio between desired metric value and current metric value.
 
@@ -23,7 +76,7 @@ desiredReplicas = ceil[currentReplicas * ( currentMetricValue / desiredMetricVal
 
 This value is used to determine how many replicas shoule be.
 
-## HPA Behavior
+### HPA Behavior
 
 Default HPA flowchart is follows. You can customize this flow with `spec.behavior`
 
