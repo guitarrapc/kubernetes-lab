@@ -78,7 +78,29 @@ This value is used to determine how many replicas shoule be.
 
 ### HPA Behavior
 
-Default HPA flowchart is follows. You can customize this flow with `spec.behavior`
+Default Behavior is as follows.
+
+```yaml
+behavior:
+  scaleDown:
+    stabilizationWindowSeconds: 300
+    policies:
+    - type: Percent
+      value: 100
+      periodSeconds: 15
+  scaleUp:
+    stabilizationWindowSeconds: 0
+    policies:
+    - type: Percent
+      value: 100
+      periodSeconds: 15
+    - type: Pods
+      value: 4
+      periodSeconds: 15
+    selectPolicy: Max
+```
+
+This default HPA's flowchart is follows. You can customize this flow by setting `spec.behavior`
 
 ```mermaid
 flowchart TD
@@ -102,29 +124,8 @@ flowchart TD
     scalein-->check
 ```
 
-Default Behavior is as follows.
 
-```yaml
-behavior:
-  scaleDown:
-    stabilizationWindowSeconds: 300
-    policies:
-    - type: Percent
-      value: 100
-      periodSeconds: 15
-  scaleUp:
-    stabilizationWindowSeconds: 0
-    policies:
-    - type: Percent
-      value: 100
-      periodSeconds: 15
-    - type: Pods
-      value: 4
-      periodSeconds: 15
-    selectPolicy: Max
-```
-
-**stabilizationWindowSeconds**
+### stabilizationWindowSeconds
 
 The stabilization window is used to restrict the flapping of replica count when the metrics used for scaling keep fluctuating. The autoscaling algorithm uses this window to infer a previous desired state and avoid unwanted changes to workload scale.
 
