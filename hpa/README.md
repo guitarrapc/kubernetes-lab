@@ -2,7 +2,7 @@
 
 HPA is standard API resource, so you don't need install it. However HPA requires Metrics Server.
 
-* [simple/README.md](simple/README.md)
+* [no-behavior/README.md](no-behavior/README.md)
 * [behavior/README.md](behavior/README.md)
 
 ## Reference
