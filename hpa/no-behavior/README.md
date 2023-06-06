@@ -19,9 +19,9 @@ yaml manifest.
 
 ```sh
 kubens default
-curl -Lso ./hpa/simple/php-apache.yaml https://k8s.io/examples/application/php-apache.yaml
-kubectl apply -f hpa/simple/php-apache.yaml
-kubectl apply -f hpa/simple/php-apache-hpa.yaml
+curl -Lso ./hpa/no-behavior/php-apache.yaml https://k8s.io/examples/application/php-apache.yaml
+kubectl apply -f hpa/no-behavior/php-apache.yaml
+kubectl apply -f hpa/no-behavior/php-apache-hpa.yaml
 kubectl get hpa
 ```
 
