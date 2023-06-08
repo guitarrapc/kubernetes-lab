@@ -35,18 +35,17 @@ Open new shell and run LoadTest. This makes scale out memoryleak pod.
 
 ```sh
 $ kubectl run -i --tty load-generator --rm --image=alpine/bombardier:v1.2.5 --restart=Never -- -c 5 -d 210s http://envoy/alloc_str?size=1024
-
 If you don't see a command prompt, try pressing enter.
-
-[====================================================================================================================================================================================] 3m30sDone!
+[=========================================================================================================================================================] 3m30s
+Done!
 Statistics        Avg      Stdev        Max
-  Reqs/sec      1019.59     796.86    3754.22
-  Latency        4.90ms     9.60ms    79.08ms
+  Reqs/sec      1267.07    1517.14   10839.57
+  Latency        3.95ms    10.06ms    91.87ms
   HTTP codes:
-    1xx - 0, 2xx - 214198, 3xx - 0, 4xx - 0, 5xx - 0
+    1xx - 0, 2xx - 265505, 3xx - 0, 4xx - 0, 5xx - 0
     others - 0
-  Throughput:     9.62MB/s
-pod "load-generator" deleted
+  Throughput:   245.71KB/s
+pod "load-generator" delet
 ```
 
 ## HPA Result
