@@ -2,9 +2,7 @@
 
 Before runnning this sample, install Metrics-Server. see [hpa/README.md](../README.md).
 
-## Customize HPA Behavior
-
-Customized HPA behavior works as follows.
+Customized HPA behavior based on CPU.
 
 ```mermaid
 flowchart TD
@@ -30,7 +28,7 @@ flowchart TD
 
 ## Deploy HPA
 
-Run PHP Server with cli or yaml manifest.
+Run Server with cli or yaml manifest.
 
 yaml manifest.
 
