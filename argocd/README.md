@@ -57,7 +57,7 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: sample-app-kustomize
-  project: sample-project
+  project: kubernetes-lab
   source:
     repoURL: https://github.com/guitarrapc/kubernetes-lab
     targetRevision: $(git rev-parse --abbrev-ref HEAD)
