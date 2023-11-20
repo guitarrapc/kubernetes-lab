@@ -36,29 +36,29 @@
 
     ```sh
     cat <<EOF | kubectl apply -f -
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: sample-app-kustomize
-  namespace: argocd
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
-spec:
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: sample-app-kustomize
-  project: kubernetes-lab
-  source:
-    repoURL: https://github.com/guitarrapc/kubernetes-lab
-    targetRevision: "$(git rev-parse --abbrev-ref HEAD)"
-    path: argocd/sample-app-kustomize/kustomize
-  syncPolicy:
-    syncOptions:
-      - CreateNamespace=true
-    automated:
-      selfHeal: true
-      prune: true
-EOF
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+    name: sample-app-kustomize
+    namespace: argocd
+    finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: sample-app-kustomize
+    project: kubernetes-lab
+    source:
+        repoURL: https://github.com/guitarrapc/kubernetes-lab
+        targetRevision: "$(git rev-parse --abbrev-ref HEAD)"
+        path: argocd/sample-app-kustomize/kustomize
+    syncPolicy:
+        syncOptions:
+        - CreateNamespace=true
+        automated:
+        selfHeal: true
+        prune: true
+    EOF
     ```
 
 
@@ -74,27 +74,27 @@ EOF
 
     ```sh
     cat <<EOF | kubectl apply -f -
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: sample-local-image
-  namespace: argocd
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
-spec:
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: sample-local-image
-  project: kubernetes-lab
-  source:
-    repoURL: https://github.com/guitarrapc/kubernetes-lab
-    targetRevision: "$(git rev-parse --abbrev-ref HEAD)"
-    path: argocd/sample-local-image/kustomize
-  syncPolicy:
-    syncOptions:
-      - CreateNamespace=true
-    automated:
-      selfHeal: true
-      prune: true
-EOF
+    apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+    name: sample-local-image
+    namespace: argocd
+    finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: sample-local-image
+    project: kubernetes-lab
+    source:
+        repoURL: https://github.com/guitarrapc/kubernetes-lab
+        targetRevision: "$(git rev-parse --abbrev-ref HEAD)"
+        path: argocd/sample-local-image/kustomize
+    syncPolicy:
+        syncOptions:
+        - CreateNamespace=true
+        automated:
+        selfHeal: true
+        prune: true
+    EOF
     ```
