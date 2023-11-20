@@ -35,7 +35,7 @@
 1. Deploy ArgoCD Application.
 
     ```sh
-    cat <<EOF > ./argocd/sample-app-kustomize/app.yaml
+    cat <<EOF | kubectl apply -f -
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -59,7 +59,6 @@ spec:
       selfHeal: true
       prune: true
 EOF
-    kubectl apply -f argocd/sample-app-kustomize/app.yaml
     ```
 
 
@@ -74,7 +73,7 @@ EOF
 2. Deploy ArgoCD Application.
 
     ```sh
-    cat <<EOF > ./argocd/sample-local-image/app.yaml
+    cat <<EOF | kubectl apply -f -
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -98,5 +97,4 @@ spec:
       selfHeal: true
       prune: true
 EOF
-    kubectl apply -f argocd/sample-local-image/app.yaml
     ```
