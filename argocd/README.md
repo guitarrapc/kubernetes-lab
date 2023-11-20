@@ -1,4 +1,6 @@
-## README
+# README
+
+## Prerequisite
 
 1. Install ArgoCD.
 
@@ -22,27 +24,15 @@
     argocd login 127.0.0.1:3080 --name local --username admin --password "PASS"
     ```
 
-## sample-app-kustomize
-
-1. Deploy ArgoCD AppProject.
+4. Deploy ArgoCD AppProject.
 
     ```sh
     kubectl apply -f argocd/appproject.yaml
     ```
 
-2. Create Manifest from Kustomize.
+## sample-app-kustomize
 
-    ```sh
-    mkdir -p ./argocd/sample-app-kustomize/sync-manifests && kubectl kustomize ./argocd/sample-app-kustomize/kustomize > ./argocd/sample-app-kustomize/sync-manifests/install.yaml
-    ```
-
-3. Commit & push manifest.
-
-    ```sh
-    git add -A && git commit -am "feat: add sample-app-kustomize" && git push
-    ```
-
-4. Deploy ArgoCD Application.
+1. Deploy ArgoCD Application.
 
     ```sh
     cat <<EOF > ./argocd/sample-app-kustomize/app.yaml
@@ -60,7 +50,7 @@ spec:
   project: kubernetes-lab
   source:
     repoURL: https://github.com/guitarrapc/kubernetes-lab
-    targetRevision: $(git rev-parse --abbrev-ref HEAD)
+    targetRevision: "$(Git rev-parse --abbrev-ref HEAD)"
     path: argocd/sample-app-kustomize/kustomize
   syncPolicy:
     syncOptions:
@@ -70,4 +60,41 @@ spec:
       prune: true
 EOF
     kubectl apply -f argocd/sample-app-kustomize/app.yaml
+    ```
+
+
+## sample-local-image
+
+1. Build guestbook-go image.
+
+    ```shell
+    docker build -t guestbook:dev -f argocd/sample-local-image/guestbook-go/Dockerfile argocd/sample-local-image/guestbook-go
+    ```
+
+2. Deploy ArgoCD Application.
+
+    ```sh
+    cat <<EOF > ./argocd/sample-app-kustomize/app.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sample-local-image
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: sample-local-image
+  project: kubernetes-lab
+  source:
+    repoURL: https://github.com/guitarrapc/kubernetes-lab
+    targetRevision: "$(Git rev-parse --abbrev-ref HEAD)"
+    path: argocd/sample-local-image/kustomize
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
     ```
