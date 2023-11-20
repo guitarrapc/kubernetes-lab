@@ -12,7 +12,8 @@ spec:
   project: sample-project
   source:
     repoURL: https://github.com/guitarrapc/kubernetes-lab
-    path: argocd/sample-app/kustomize/sync-manifests/
+    targetRevision: feature/argocd
+    path: argocd/sample-app-kustomize/kustomize
   syncPolicy:
     syncOptions:
       - CreateNamespace=true

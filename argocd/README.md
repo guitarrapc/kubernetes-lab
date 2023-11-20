@@ -45,5 +45,29 @@
 4. Deploy ArgoCD Application.
 
     ```sh
+    cat <<EOF > ./argocd/sample-app-kustomize/app.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sample-app-kustomize
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: sample-app-kustomize
+  project: sample-project
+  source:
+    repoURL: https://github.com/guitarrapc/kubernetes-lab
+    targetRevision: $(git rev-parse --abbrev-ref HEAD)
+    path: argocd/sample-app-kustomize/kustomize
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
+EOF
     kubectl apply -f argocd/sample-app-kustomize/app.yaml
     ```
