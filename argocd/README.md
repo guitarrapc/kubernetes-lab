@@ -50,7 +50,7 @@ spec:
   project: kubernetes-lab
   source:
     repoURL: https://github.com/guitarrapc/kubernetes-lab
-    targetRevision: "$(Git rev-parse --abbrev-ref HEAD)"
+    targetRevision: "$(git rev-parse --abbrev-ref HEAD)"
     path: argocd/sample-app-kustomize/kustomize
   syncPolicy:
     syncOptions:
@@ -74,7 +74,7 @@ EOF
 2. Deploy ArgoCD Application.
 
     ```sh
-    cat <<EOF > ./argocd/sample-app-kustomize/app.yaml
+    cat <<EOF > ./argocd/sample-local-image/app.yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -89,7 +89,7 @@ spec:
   project: kubernetes-lab
   source:
     repoURL: https://github.com/guitarrapc/kubernetes-lab
-    targetRevision: "$(Git rev-parse --abbrev-ref HEAD)"
+    targetRevision: "$(git rev-parse --abbrev-ref HEAD)"
     path: argocd/sample-local-image/kustomize
   syncPolicy:
     syncOptions:
@@ -97,4 +97,6 @@ spec:
     automated:
       selfHeal: true
       prune: true
+EOF
+    kubectl apply -f argocd/sample-local-image/app.yaml
     ```
