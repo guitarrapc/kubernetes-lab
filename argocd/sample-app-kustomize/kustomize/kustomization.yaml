@@ -1,0 +1,5 @@
+namePrefix: sample-app
+
+resources:
+  - deployment.yaml
+  - service.yaml

@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: kubernetes-lab
+  namespace: argocd # it must be argocd
+spec:
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: "*"
+  orphanedResources:
+    warn: false
+  sourceRepos:
+    - "https://github.com/guitarrapc/kubernetes-lab"
