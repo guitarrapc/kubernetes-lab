@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: guestbook
+spec:
+  selector:
+    matchLabels:
+      app: guestbook
+  template:
+    metadata:
+      labels:
+        app: guestbook
+    spec:
+      containers:
+        - image: guestbook:dev
+          imagePullPolicy: Never
+          name: guestbook
+          env:
+            - name: REDIS_HOST
+              value: redis
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: guestbook
+spec:
+  type: LoadBalancer
+  ports:
+    - name: guestbook
+      port: 10881
+      targetPort: 8080
+  selector:
+    app: guestbook

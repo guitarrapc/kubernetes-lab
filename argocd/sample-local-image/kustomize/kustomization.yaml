@@ -1,0 +1,4 @@
+namespace: sample-local-image
+resources:
+  - guestbook.yaml
+  - redis.yaml
