@@ -34,32 +34,32 @@
 
 1. Deploy ArgoCD Application.
 
-    ```sh
-    cat <<EOF | kubectl apply -f -
-    apiVersion: argoproj.io/v1alpha1
-    kind: Application
-    metadata:
-    name: sample-app-kustomize
-    namespace: argocd
-    finalizers:
-        - resources-finalizer.argocd.argoproj.io
-    spec:
-    destination:
-        server: https://kubernetes.default.svc
-        namespace: sample-app-kustomize
-    project: kubernetes-lab
-    source:
-        repoURL: https://github.com/guitarrapc/kubernetes-lab
-        targetRevision: "$(git rev-parse --abbrev-ref HEAD)"
-        path: argocd/sample-app-kustomize/kustomize
-    syncPolicy:
-        syncOptions:
-        - CreateNamespace=true
-        automated:
-        selfHeal: true
-        prune: true
-    EOF
-    ```
+```sh
+cat <<EOF | kubectl apply -f -
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sample-app-kustomize
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: sample-app-kustomize
+  project: kubernetes-lab
+  source:
+    repoURL: https://github.com/guitarrapc/kubernetes-lab
+    targetRevision: "$(git rev-parse --abbrev-ref HEAD)"
+    path: argocd/sample-app-kustomize/kustomize
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
+EOF
+```
 
 
 ## sample-local-image
@@ -72,29 +72,74 @@
 
 2. Deploy ArgoCD Application.
 
-    ```sh
-    cat <<EOF | kubectl apply -f -
-    apiVersion: argoproj.io/v1alpha1
-    kind: Application
+```sh
+cat <<EOF | kubectl apply -f -
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sample-local-image
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: sample-local-image
+  project: kubernetes-lab
+  source:
+    repoURL: https://github.com/guitarrapc/kubernetes-lab
+    targetRevision: "$(git rev-parse --abbrev-ref HEAD)"
+    path: argocd/sample-local-image/kustomize
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
+EOF
+```
+
+## sample-appset-kustomize
+
+1. Deploy ArgoCD Application.
+
+```sh
+cat <<EOF | kubectl apply -f -
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: sample-appset
+  namespace: argocd
+spec:
+  generators:
+  - list:
+      elements:
+      - cluster: https://kubernetes.default.svc
+        name: sample-app-kustomize
+        path: argocd/sample-app-kustomize/kustomize
+      - cluster: https://kubernetes.default.svc
+        name: sample-local-image
+        path: argocd/sample-local-image/kustomize
+  syncPolicy:
+    preserveResourcesOnDeletion: false
+  template:
     metadata:
-    name: sample-local-image
-    namespace: argocd
-    finalizers:
-        - resources-finalizer.argocd.argoproj.io
+      name: '{{ name }}'
     spec:
-    destination:
-        server: https://kubernetes.default.svc
-        namespace: sample-local-image
-    project: kubernetes-lab
-    source:
+      project: kubernetes-lab
+      source:
         repoURL: https://github.com/guitarrapc/kubernetes-lab
         targetRevision: "$(git rev-parse --abbrev-ref HEAD)"
-        path: argocd/sample-local-image/kustomize
-    syncPolicy:
+        path: '{{ path }}'
+      destination:
+        server: '{{ cluster }}'
+        namespace: '{{ name }}'
+      ignoreDifferences: []
+      syncPolicy:
         syncOptions:
         - CreateNamespace=true
         automated:
-        selfHeal: true
-        prune: true
-    EOF
-    ```
+          selfHeal: true
+          prune: true
+EOF
+```
