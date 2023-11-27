@@ -191,7 +191,7 @@ EOF
 
 3. Check resources on ArgoCD. There are no `ApplicationSet` view, but you can find each app instead.
 
-    ![image](https://gist.github.com/assets/3856350/63ebdc47-96c6-4a9e-8717-d0c275cc858a)
+    ![image](https://gist.github.com/assets/3856350/f0a02cf5-95fe-427d-9071-f652342a4c5c)
 
 
 
@@ -201,4 +201,4 @@ EOF
     $ k delete appset sample-appset -n argocd
     ```
 
-    ![image](https://gist.github.com/assets/3856350/6f79c886-86fb-4697-b2eb-d16e075fd52e)
+    ![image](https://gist.github.com/assets/3856350/19c0b2dc-0397-49b2-8dec-0fbd1590dd0c)
