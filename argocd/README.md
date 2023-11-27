@@ -1,40 +1,44 @@
 # README
 
-## Prerequisite
+## Getting started
 
 1. Install ArgoCD.
 
     > https://artifacthub.io/packages/helm/argo/argo-cd
 
-    ```sh
+    ```shell
     helm repo add argo https://argoproj.github.io/argo-helm
     helm upgrade --install argocd argo/argo-cd --set "server.extraArgs={--insecure}" --set server.extensions.enabled=true --set server.service.type=LoadBalancer --set server.service.servicePortHttp=3080 --set server.service.servicePortHttps=3443 -n argocd --create-namespace --wait
     ```
 
 2. Get password for ArgoCD UI's admin user.
 
-    ```sh
+    ```shell
     kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
     ```
 
 3. Access ArgoCD with http://localhost:3080. user `admin`, password `see above step2`.
 
-    ```sh
+    ```shell
     # also you can access via CLI
     argocd login 127.0.0.1:3080 --name local --username admin --password "PASS"
     ```
 
 4. Deploy ArgoCD AppProject.
 
-    ```sh
+    ```shell
     kubectl apply -f argocd/appproject.yaml
     ```
 
-## sample-app-kustomize
+Now you are ready to deploy applicaiton.
+
+## Sample1: sample-app-kustomize
+
+Deploy application which public image, Kubernetes manifests are manged with Kustomize.
 
 1. Deploy ArgoCD Application.
 
-```sh
+```shell
 cat <<EOF | kubectl apply -f -
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -61,18 +65,25 @@ spec:
 EOF
 ```
 
+2. Delete `Application` will remove managed application and namespaces.
 
-## sample-local-image
+    ```shell
+    $ k delete app sample-app-kustomize -n argocd
+    ```
+
+## Sample2: sample-local-image
+
+Deploy application which use local image and kustomize.
 
 1. Build guestbook-go image.
 
-    ```shell
+    ```shellell
     docker build -t guestbook:dev -f argocd/sample-local-image/guestbook-go/Dockerfile argocd/sample-local-image/guestbook-go
     ```
 
 2. Deploy ArgoCD Application.
 
-```sh
+```shell
 cat <<EOF | kubectl apply -f -
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -99,11 +110,22 @@ spec:
 EOF
 ```
 
-## sample-appset-kustomize
+3. Delete `Application` will remove managed application and namespaces.
 
-1. Deploy ArgoCD Application.
+    ```shell
+    $ k delete app sample-local-image -n argocd
+    ```
 
-```sh
+## Sample3: sample-appset-kustomize
+
+Deploy ApplicationSet which include 2 app, `sample-app-kustomize` and `sample-local-image`.
+
+> [!NOTE]
+> Build guestbook-go image before deploying ApplicationSet. See section [#sample2: sample-local-image](#sample2-sample-local-image) for detail.
+
+1. Deploy ArgoCD ApplicationSet.
+
+```shell
 cat <<EOF | kubectl apply -f -
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
@@ -143,3 +165,36 @@ spec:
           prune: true
 EOF
 ```
+
+2. Now you can find applicationset creates application and kubernetes resources.
+
+    ```shell
+    $ k get appset
+    aNAME            AGE
+    sample-appset   91s
+    $ k get app
+    NAME                   SYNC STATUS   HEALTH STATUS
+    sample-app-kustomize   Synced        Healthy
+    sample-local-image     Synced        Healthy
+    $ k get ns
+    NAME                   STATUS   AGE
+    argocd                 Active   21m
+    default                Active   39h
+    kube-node-lease        Active   39h
+    kube-public            Active   39h
+    kube-system            Active   39h
+    sample-app-kustomize   Active   92s
+    sample-local-image     Active   92s
+    ```
+
+3. Check resources on ArgoCD. There are no `ApplicationSet` view, but you can find each app instead.
+    ![image](https://gist.github.com/assets/3856350/f4e4543d-f1b4-45ad-ada6-b707f0045012)
+
+
+4. Delete `ApplicationSet` will remove managed application and namespaces.
+
+    ```shell
+    $ k delete appset sample-appset -n argocd
+    ```
+
+    ![image](https://gist.github.com/assets/3856350/da19444d-f0d7-4586-b78c-6e2d0b82e8c2)
