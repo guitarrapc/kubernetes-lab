@@ -190,7 +190,9 @@ EOF
     ```
 
 3. Check resources on ArgoCD. There are no `ApplicationSet` view, but you can find each app instead.
-    ![image](https://gist.github.com/assets/3856350/f4e4543d-f1b4-45ad-ada6-b707f0045012)
+
+    ![image](https://gist.github.com/assets/3856350/63ebdc47-96c6-4a9e-8717-d0c275cc858a)
+
 
 
 4. Delete `ApplicationSet` will remove managed application and namespaces.
@@ -199,4 +201,4 @@ EOF
     $ k delete appset sample-appset -n argocd
     ```
 
-    ![image](https://gist.github.com/assets/3856350/da19444d-f0d7-4586-b78c-6e2d0b82e8c2)
+    ![image](https://gist.github.com/assets/3856350/6f79c886-86fb-4697-b2eb-d16e075fd52e)
