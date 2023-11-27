@@ -1,5 +1,7 @@
 # README
 
+This directory introduce ArgoCD deployment and samples.
+
 ## Getting started
 
 1. Install ArgoCD.
