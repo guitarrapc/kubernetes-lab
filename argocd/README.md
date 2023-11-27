@@ -191,7 +191,7 @@ EOF
 
 3. Check resources on ArgoCD. There are no `ApplicationSet` view, but you can find each app instead.
 
-    ![image](https://gist.github.com/assets/3856350/f0a02cf5-95fe-427d-9071-f652342a4c5c)
+    ![image](https://github.com/guitarrapc/kubernetes-lab/assets/3856350/1e47e989-4ca4-4499-bee2-ea27816f265b)
 
 
 
@@ -201,4 +201,4 @@ EOF
     $ k delete appset sample-appset -n argocd
     ```
 
-    ![image](https://gist.github.com/assets/3856350/19c0b2dc-0397-49b2-8dec-0fbd1590dd0c)
+    ![image](https://github.com/guitarrapc/kubernetes-lab/assets/3856350/3094cbe8-c56d-49b3-97e8-c22795ee1ce7)
