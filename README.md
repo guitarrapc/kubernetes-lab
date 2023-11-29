@@ -51,7 +51,7 @@ To manage AWS resources from containers running in Kubernetes, you must be authe
 
 **IAM Role for ServiceAccount(IRSA)**
 
-To use IRSA, you must setup OIDC and EKS trust relationship.
+To use IRSA, you must setup OIDC and EKS trust relationship beforehand.
 
 * Create OIDC Provider which trust EKS Cluster.
 
