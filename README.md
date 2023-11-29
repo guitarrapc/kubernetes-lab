@@ -68,8 +68,8 @@ The following diagram illustrates the association between Kubernetes resources a
 title: IAM Role for ServiceAccount (IRSA)
 ---
 flowchart LR
+Terraform
 subgraph AWS
-  Terraform
   IAMRole["IAM Role"]
   IAMOIDC["IAM OIDC Provider"]
   ALB
@@ -82,11 +82,11 @@ subgraph EKS
   end
 end
 
-EKS -."Trust relationship"....-> IAMOIDC
-Terraform --"1.Define allowed ServiceAccount and Namespace"---> IAMRole
+EKS -."Trust relationship"...-> IAMOIDC
+Terraform --"1.Define allowed ServiceAccount and Namespace"--> IAMRole
 IAMRole -."1.1.Relation".-> IAMOIDC
-ServiceAccount --"2.Specify IAM Role ARN in annotation"--> IAMRole
-Pod --"3.Use ServiceAccount"--> ServiceAccount
+ServiceAccount -."2.Specify IAM Role ARN in annotation".-> IAMRole
+Pod --"3.Use ServiceAccount"---> ServiceAccount
 Pod -."3.1.AssumeRoleWithWebIdentity"..-> IAMSTS
 Pod --"3.2.Operate with temp auth"---> ALB
 ```
