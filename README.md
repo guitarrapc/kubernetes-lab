@@ -47,21 +47,31 @@ Pod -."1.Watch".- Karpenter
 
 ## Operate AWS in Kubernetes.
 
-To manage AWS resources from containers running in Kubernetes, you must be authenticated by IAM at the time of AWS operation. However, since IAM is a feature of AWS, it's difficult to call IAM directly from the container, and it's necessary to somehow pass the IAM authentication information to the container. EKS has a mechanism for passing IAM authentication, which is called [IAM Role for ServiceAccount(IRSA)](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html).
+To manage AWS resources from containers running in Kubernetes, you must be authenticated by IAM at the time of AWS operation. However, since IAM is a feature of AWS, it's difficult to call IAM directly from the container, and it's necessary to somehow pass the IAM authentication information to the container. EKS has a mechanism for passing IAM authentication, which is called [IAM Role for ServiceAccount(IRSA)](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) and [EKS Pod Identities](https://docs.aws.amazon.com/ja_jp/eks/latest/userguide/pod-identities.html).
+
+**IAM Role for ServiceAccount(IRSA)**
 
 IRSA is comprised of three steps.
-1. Create an IAM Role in advance. At this time, specify the EKS cluster, Service Account, and Namespace that will utilize IAM Role authentication.
+
+0. Create OIDC Provider which trust EKS Cluster.
+1. Create an IAM Role. At this time, specify the EKS cluster, Service Account, and Namespace that will utilize IAM Role authentication.
 2. Set the IAM Role ARN for the ServiceAccount specified in the above step.
-3. When using the Service Account specified above in a Pod, the AWS authentication information is inserted into the environment variables by IRSA at the time of Pod startup, authenticating each container with AWS.
+3. When using the Service Account specified above in a Pod, the AWS authentication information is inserted into the environment variables by IRSA at the time of Manifest apply.
+4. Container authenticating with sts and now it can operate AWS.
 
 The following diagram illustrates the association between Kubernetes resources and AWS when using IRSA.
 
 ```mermaid
+---
+title: IAM Role for ServiceAccount (IRSA)
+---
 flowchart LR
 subgraph AWS
   Terraform
   IAMRole["IAM Role"]
+  IAMOIDC["IAM OIDC Provider"]
   ALB
+  IAMSTS["IAM STS"]
 end
 subgraph EKS
   subgraph "Namespace A"
@@ -69,8 +79,16 @@ subgraph EKS
     Pod
   end
 end
+
+EKS -."0.Trust relationship"....-> IAMOIDC
 Terraform --"1.Define allowed ServiceAccount and Namespace"---> IAMRole
+IAMRole -."1.1.Relation".-> IAMOIDC
 ServiceAccount --"2.Specify IAM Role ARN in annotation"--> IAMRole
 Pod --"3.Use ServiceAccount"--> ServiceAccount
-Pod --"4.Operate"---> ALB
+Pod -."4.AssumeRoleWithWebIdentity"..-> IAMSTS
+Pod --"4.1.Operate with temp auth"---> ALB
 ```
+
+**EKS Pod Identities**
+
+[TBD]
