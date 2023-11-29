@@ -51,13 +51,15 @@ To manage AWS resources from containers running in Kubernetes, you must be authe
 
 **IAM Role for ServiceAccount(IRSA)**
 
+To use IRSA, you must setup OIDC and EKS trust relationship.
+
+* Create OIDC Provider which trust EKS Cluster.
+
 IRSA is comprised of three steps.
 
-0. Create OIDC Provider which trust EKS Cluster.
 1. Create an IAM Role. At this time, specify the EKS cluster, Service Account, and Namespace that will utilize IAM Role authentication.
 2. Set the IAM Role ARN for the ServiceAccount specified in the above step.
-3. When using the Service Account specified above in a Pod, the AWS authentication information is inserted into the environment variables by IRSA at the time of Manifest apply.
-4. Container authenticating with sts and now it can operate AWS.
+3. When using the Service Account specified above in a Pod, the AWS authentication information is inserted into the environment variables by IRSA at the time of Manifest apply. Now Container authenticated by sts and it can operate AWS with temporary auth.
 
 The following diagram illustrates the association between Kubernetes resources and AWS when using IRSA.
 
@@ -80,13 +82,13 @@ subgraph EKS
   end
 end
 
-EKS -."0.Trust relationship"....-> IAMOIDC
+EKS -."Trust relationship"....-> IAMOIDC
 Terraform --"1.Define allowed ServiceAccount and Namespace"---> IAMRole
 IAMRole -."1.1.Relation".-> IAMOIDC
 ServiceAccount --"2.Specify IAM Role ARN in annotation"--> IAMRole
 Pod --"3.Use ServiceAccount"--> ServiceAccount
-Pod -."4.AssumeRoleWithWebIdentity"..-> IAMSTS
-Pod --"4.1.Operate with temp auth"---> ALB
+Pod -."3.1.AssumeRoleWithWebIdentity"..-> IAMSTS
+Pod --"3.2.Operate with temp auth"---> ALB
 ```
 
 **EKS Pod Identities**
