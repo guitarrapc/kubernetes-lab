@@ -43,3 +43,34 @@ ExternalSecretsOperator --"3.Create"--> Secrets
 Provisioner -."2.Reference".- Karpenter --"3.Create"--> EC2 -.Register.-> Node
 Pod -."1.Watch".- Karpenter
 ```
+
+
+## Operate AWS in Kubernetes.
+
+To manage AWS resources from containers running in Kubernetes, you must be authenticated by IAM at the time of AWS operation. However, since IAM is a feature of AWS, it's difficult to call IAM directly from the container, and it's necessary to somehow pass the IAM authentication information to the container. EKS has a mechanism for passing IAM authentication, which is called [IAM Role for ServiceAccount(IRSA)](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html).
+
+IRSA is comprised of three steps.
+1. Create an IAM Role in advance. At this time, specify the EKS cluster, Service Account, and Namespace that will utilize IAM Role authentication.
+2. Set the IAM Role ARN for the ServiceAccount specified in the above step.
+3. When using the Service Account specified above in a Pod, the AWS authentication information is inserted into the environment variables by IRSA at the time of Pod startup, authenticating each container with AWS.
+
+The following diagram illustrates the association between Kubernetes resources and AWS when using IRSA.
+
+```mermaid
+flowchart LR
+subgraph AWS
+  Terraform
+  IAMRole["IAM Role"]
+  ALB
+end
+subgraph EKS
+  subgraph "Namespace A"
+    ServiceAccount
+    Pod
+  end
+end
+Terraform --"1.Define allowed ServiceAccount and Namespace"---> IAMRole
+ServiceAccount --"2.Specify IAM Role ARN in annotation"--> IAMRole
+Pod --"3.Use ServiceAccount"--> ServiceAccount
+Pod --"4.Operate"---> ALB
+```
