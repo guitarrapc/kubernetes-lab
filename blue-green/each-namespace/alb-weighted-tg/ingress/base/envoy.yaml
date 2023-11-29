@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: envoy
+spec:
+  selector:
+    matchLabels:
+      app: envoy
+  template:
+    metadata:
+      labels:
+        app: envoy
+    spec:
+      # Time ALB remove pod and wait next pod register.deregistration_delay is 50sec, 43 + n.
+      terminationGracePeriodSeconds: 50
+      containers:
+        - name: envoy
+          image: envoyproxy/envoy:v1.28.0
+          resources:
+            requests:
+              cpu: "20m"
+              memory: "64Mi"
+            limits:
+              cpu: "400m"
+              memory: "512Mi"
+          volumeMounts:
+            - name: config
+              mountPath: /etc/envoy
+          ports:
+            - name: blue
+              containerPort: 8080
+            - name: green
+              containerPort: 8081
+            - name: admin
+              containerPort: 9901
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: 9901
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 9901
+          lifecycle:
+            preStop:
+              exec:
+                # wait 3 sec until pod removed from service.
+                # gracefulshutdown
+                # wait until request timeout (40sec)
+                command:
+                  [
+                    "/bin/sh",
+                    "-c",
+                    "sleep 3 && wget -qO- --post-data='' http://127.0.0.1:9901/healthcheck/fail && sleep 40",
+                  ]
+      volumes:
+        - name: config
+          configMap:
+            name: envoy-config

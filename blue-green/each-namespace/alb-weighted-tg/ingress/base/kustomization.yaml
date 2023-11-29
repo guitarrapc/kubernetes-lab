@@ -1,0 +1,11 @@
+namespace: hello-kubernetes-share
+resources:
+  - envoy.yaml
+  - ingress.yaml
+  - namespace.yaml
+  - service.yaml
+
+configMapGenerator:
+  - name: envoy-config
+    files:
+      - envoy/envoy.yaml

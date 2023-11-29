@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "hello-kubernetes"
+  annotations:
+    alb.ingress.kubernetes.io/actions.blue-green: |
+      {
+        "type":"forward",
+        "forwardConfig":{
+          "targetGroups":[
+            {
+              "serviceName":"hello-kubernetes-envoy",
+              "servicePort":"8080",
+              "weight":100
+            },
+            {
+              "serviceName":"hello-kubernetes-envoy",
+              "servicePort":"8081",
+              "weight":0
+            }
+          ]
+        }
+      }
