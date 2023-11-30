@@ -73,7 +73,7 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: hello-kubernetes-blue-externalname
+                      address: hello-kubernetes-externalname-blue
                       port_value: 80
     - name: http_green_cluster
       connect_timeout: 1s
@@ -87,5 +87,5 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: hello-kubernetes-green-externalname
+                      address: hello-kubernetes-externalname-green
                       port_value: 80
