@@ -439,7 +439,8 @@ Delete all resources.
 kubectl kustomize ./blue-green/each-namespace/alb-weighted-tg/ingress/overlays/v1 | kubectl delete -f -
 helm uninstall v1 --namespace hello-kubernetes-blue
 helm uninstall v2 --namespace hello-kubernetes-green
-kubectl delete ns hello-kubernetes-share
+kubectl delete ns hello-kubernetes-blue
+kubectl delete ns hello-kubernetes-green
 ```
 
 
