@@ -1,4 +1,6 @@
-## README
+# README
+
+## hello-kubernetes
 
 Output rendered YAML manifests to stdout.
 
@@ -34,4 +36,11 @@ Delete release from cluster.
 
 ```shell
 helm uninstall hello-kubernetes --namespace hello-kubernetes
+```
+
+
+## template-lab
+
+```shell
+helm template foo ./helm/tmplate-lab --namespace foo
 ```

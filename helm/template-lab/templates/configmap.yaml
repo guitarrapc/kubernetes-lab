@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Configmap
+metadata:
+  name: foo
+  metadata:
+    labels:
+      templateValue: {{ tpl .Values.templateValue . | quote }}
+      textTemplateValue: {{ tpl .Values.textTemplateValue . | quote }}
+data:
+  normal: {{ .Values.normal | quote }}
+
+  {{- /*
+    Bad pattern, Could not render template variables used in values.yaml
+    <result>
+    bar: '{{ .Release.Namespace }}'
+  */}}
+  {{- /*
+  {{- with .Values.configmap.data }}
+  {{- toYaml . | nindent 2 }}
+  {{- end -}}
+  */}}
+
+  {{- /*
+    Range pattern, can render template variables used in values.yaml
+    <result>
+    bar: 'foo-namespace'
+  */}}
+  {{- range $key, $value := .Values.configmap.data }}
+  {{ $key }}: {{ tpl $value $ }}
+  {{- end -}}

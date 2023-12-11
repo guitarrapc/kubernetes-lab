@@ -1,0 +1,9 @@
+normal: foo-bar
+templateValue: "{{ .Release.Namespace }}"
+textTemplateValue: "foo-bar-{{ .Release.Namespace }}"
+
+configmap:
+  data:
+    normal: baz
+    templateValue: "{{ .Release.Namespace }}"
+    textTemplateValue: "piyo-{{ .Release.Namespace }}"
